@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { StructuredContent, ContentSection, TableRow } from '../types';
 import { motion } from 'framer-motion';
-import { ClipboardText, FileText, ArrowRight } from 'phosphor-react';
+import { ClipboardText, FileText, ArrowRight, Code, Table, ListBullets, Calendar, CheckCircle, Warning, Clock } from 'phosphor-react';
 
 interface DocumentViewProps {
   content?: StructuredContent;
@@ -11,6 +11,41 @@ interface DocumentViewProps {
 }
 
 const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => {
+  const [activeTab, setActiveTab] = useState<string>('details');
+  const [planDetails, setPlanDetails] = useState<ContentSection[]>([]);
+  const [planOutput, setPlanOutput] = useState<ContentSection[]>([]);
+  const [isTerraformPlan, setIsTerraformPlan] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (content && content.title === 'Terraform Plan') {
+      setIsTerraformPlan(true);
+
+      // Separate plan details and plan output
+      const details: ContentSection[] = [];
+      const output: ContentSection[] = [];
+      let isOutput = false;
+
+      content.sections.forEach(section => {
+        if (section.type === 'heading' && typeof section.content === 'string' &&
+            section.content === 'Plan Output') {
+          isOutput = true;
+          return;
+        }
+
+        if (isOutput) {
+          output.push(section);
+        } else {
+          details.push(section);
+        }
+      });
+
+      setPlanDetails(details);
+      setPlanOutput(output);
+    } else {
+      setIsTerraformPlan(false);
+    }
+  }, [content]);
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
@@ -18,7 +53,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
   if (!content && !isStreaming) {
     return (
       <div className="document-empty-state">
-        <motion.div 
+        <motion.div
           className="document-empty-content"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -27,7 +62,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
           <FileText size={48} weight="light" className="empty-state-icon" />
           <h2>Ready to generate documentation</h2>
           <p>Ask a question or request information from Cloud Pilot to see structured content displayed here.</p>
-          
+
           <div className="empty-state-tips">
             <div className="empty-state-tip">
               <ArrowRight size={16} className="tip-icon" />
@@ -48,7 +83,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
       case 'heading':
         const level = section.metadata?.level || 2;
         const headingContent = typeof section.content === 'string' ? section.content : '';
-        
+
         if (level === 1) {
           return <h1 key={index} className="document-heading heading-1">{headingContent}</h1>;
         } else if (level === 2) {
@@ -62,22 +97,63 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
         } else {
           return <h6 key={index} className="document-heading heading-6">{headingContent}</h6>;
         }
-      
+
       case 'text':
         const textContent = typeof section.content === 'string' ? section.content : '';
+
+        // Special handling for status, version, and timestamp
+        if (textContent.startsWith('Status:')) {
+          const status = textContent.replace('Status:', '').trim();
+          return (
+            <div key={index} className="document-tag-container">
+              <div className={`document-tag ${status.toLowerCase() === 'complete' ? 'success' : status.toLowerCase() === 'error' ? 'error' : 'pending'}`}>
+                {status.toLowerCase() === 'complete' ? (
+                  <CheckCircle size={16} weight="fill" />
+                ) : status.toLowerCase() === 'error' ? (
+                  <Warning size={16} weight="fill" />
+                ) : (
+                  <Clock size={16} weight="fill" />
+                )}
+                <span>Status: {status}</span>
+              </div>
+            </div>
+          );
+        } else if (textContent.startsWith('Terraform Version:')) {
+          const version = textContent.replace('Terraform Version:', '').trim();
+          return (
+            <div key={index} className="document-tag-container">
+              <div className="document-tag info">
+                <Code size={16} weight="fill" />
+                <span>Terraform Version: {version}</span>
+              </div>
+            </div>
+          );
+        } else if (textContent.startsWith('Timestamp:')) {
+          const timestamp = textContent.replace('Timestamp:', '').trim();
+          return (
+            <div key={index} className="document-tag-container">
+              <div className="document-tag neutral">
+                <Calendar size={16} weight="fill" />
+                <span>Timestamp: {timestamp}</span>
+              </div>
+            </div>
+          );
+        }
+
+        // Default text rendering
         return (
           <p key={index} className="document-paragraph">
             {textContent}
           </p>
         );
-      
+
       case 'code':
         const codeContent = typeof section.content === 'string' ? section.content : '';
         return (
           <div key={index} className="document-code-block">
             <div className="code-header">
               <span className="code-language">{section.metadata?.language || 'code'}</span>
-              <button 
+              <button
                 className="copy-button"
                 onClick={() => copyToClipboard(codeContent)}
                 aria-label="Copy code"
@@ -85,20 +161,20 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
                 <ClipboardText size={18} className="copy-icon" />
               </button>
             </div>
-            <SyntaxHighlighter 
-              language={section.metadata?.language} 
+            <SyntaxHighlighter
+              language={section.metadata?.language}
               style={vscDarkPlus as any}
             >
               {codeContent}
             </SyntaxHighlighter>
           </div>
         );
-      
+
       case 'list':
         if (Array.isArray(section.content)) {
           const contentArray = section.content as any[];
           const isStringArray = contentArray.every((item: any) => typeof item === 'string');
-          
+
           if (isStringArray) {
             const listItems = contentArray as string[];
             return (
@@ -111,7 +187,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
           }
         }
         return null;
-      
+
       case 'table':
         if (Array.isArray(section.content) && section.content.length > 0) {
           const firstItem = section.content[0] as any;
@@ -142,7 +218,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
           }
         }
         return null;
-      
+
       default:
         return null;
     }
@@ -175,20 +251,86 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
           </div>
         </div>
       )}
-      
+
       {content && (
-        <motion.div 
+        <motion.div
           className="document-content"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
           {content.title && (
-            <h1 className="document-title">{content.title}</h1>
+            <div className="document-header">
+              <h1 className="document-title">{content.title}</h1>
+
+              {isTerraformPlan && (
+                <div className="document-tabs">
+                  <button
+                    className={`document-tab ${activeTab === 'details' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('details')}
+                  >
+                    <Table size={18} weight="regular" />
+                    <span>Plan Details</span>
+                  </button>
+                  <button
+                    className={`document-tab ${activeTab === 'output' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('output')}
+                    disabled={planOutput.length === 0}
+                  >
+                    <Code size={18} weight="regular" />
+                    <span>Plan Output</span>
+                  </button>
+                </div>
+              )}
+            </div>
           )}
-          
+
           <div className="document-sections">
-            {content.sections.map(renderSection)}
+            {isTerraformPlan ? (
+              activeTab === 'details' ? (
+                <>
+                  <div className="document-tags-row">
+                    {planDetails.map((section, index) => {
+                      if (section.type === 'text' && typeof section.content === 'string') {
+                        const textContent = section.content;
+                        if (textContent.startsWith('Status:') ||
+                            textContent.startsWith('Terraform Version:') ||
+                            textContent.startsWith('Timestamp:')) {
+                          return renderSection(section, index);
+                        }
+                      }
+                      return null;
+                    })}
+                  </div>
+                  {planDetails.map((section, index) => {
+                    if (section.type === 'text' && typeof section.content === 'string') {
+                      const textContent = section.content;
+                      if (textContent.startsWith('Status:') ||
+                          textContent.startsWith('Terraform Version:') ||
+                          textContent.startsWith('Timestamp:')) {
+                        return null;
+                      }
+                    }
+                    // Skip the first heading which is "Terraform Plan Details" to avoid duplication
+                    if (section.type === 'heading' && typeof section.content === 'string' &&
+                        section.content === 'Terraform Plan Details') {
+                      return null;
+                    }
+                    return renderSection(section, index);
+                  })}
+                </>
+              ) : (
+                planOutput.length > 0 ? (
+                  planOutput.map(renderSection)
+                ) : (
+                  <div className="document-empty-tab">
+                    <p>No plan output available</p>
+                  </div>
+                )
+              )
+            ) : (
+              content.sections.map(renderSection)
+            )}
           </div>
         </motion.div>
       )}
@@ -196,4 +338,4 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming }) => 
   );
 };
 
-export default DocumentView; 
+export default DocumentView;

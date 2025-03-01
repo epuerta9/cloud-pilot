@@ -159,50 +159,102 @@
 }
 
 .main-content .chat-bubble .confirmation-buttons {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  justify-content: flex-end;
-  width: 100%;
+  display: flex !important;
+  gap: 0.75rem !important;
+  margin-top: 1.25rem !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  padding: 0 1rem !important;
 }
 
 .main-content .chat-bubble .confirmation-buttons button {
-  min-width: 100px;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative !important;
+  min-width: 120px !important;
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  font-family: inherit !important;
 }
 
 .main-content .chat-bubble .confirmation-buttons .confirm-button {
-  background-color: #0284c7;
-  color: white;
+  background: linear-gradient(to right, #0ea5e9, #06b6d4) !important;
+  color: white !important;
+  box-shadow: 0 2px 4px rgba(14, 165, 233, 0.15),
+              0 0 0 1px rgba(14, 165, 233, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
 .main-content .chat-bubble .confirmation-buttons .confirm-button:hover {
-  background-color: #0369a1;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(to right, #0284c7, #0891b2) !important;
+  box-shadow: 0 4px 8px rgba(14, 165, 233, 0.2),
+              0 0 0 1px rgba(14, 165, 233, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-1px) !important;
 }
 
 .main-content .chat-bubble .confirmation-buttons .cancel-button {
-  background-color: #e2e8f0;
-  color: #475569;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05),
+              0 0 0 1px rgba(0, 0, 0, 0.05),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(203, 213, 225, 0.4) !important;
 }
 
 .main-content .chat-bubble .confirmation-buttons .cancel-button:hover {
-  background-color: #cbd5e1;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08),
+              0 0 0 1px rgba(0, 0, 0, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-1px) !important;
 }
 
 .main-content .chat-bubble .confirmation-buttons button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transform: translateY(0) !important;
+  transition-duration: 0.1s !important;
+}
+
+.main-content .chat-bubble .confirmation-buttons button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(14, 165, 233, 0.3) !important;
+}
+
+.main-content .chat-bubble .confirmation-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: saturate(0.8);
+}
+
+.main-content .chat-bubble .confirmation-buttons button svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke-width: 2 !important;
+  flex-shrink: 0 !important;
+}
+
+.main-content .chat-bubble .confirmation-buttons button span {
+  font-weight: 500 !important;
+  line-height: 1.25 !important;
+}
+
+.main-content .chat-bubble .confirmation-buttons .confirm-button svg {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.main-content .chat-bubble .confirmation-buttons .cancel-button svg {
+  color: #64748b !important;
 }
 
 .timestamp {
@@ -245,4 +297,265 @@
   white-space: pre;
   overflow-x: auto;
   max-width: 100%;
+}
+
+.confirmation-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  border-radius: 0.75rem;
+  background-color: #f8fafc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+}
+
+.confirmation-sidebar {
+  padding: 1rem;
+  background-color: #f0f9ff;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(14, 165, 233, 0.1);
+}
+
+.confirmation-header {
+  margin-bottom: 1rem;
+}
+
+.confirmation-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  margin: 0 0 0.5rem 0;
+}
+
+.confirmation-question {
+  font-size: 0.9375rem;
+  color: #334155;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.confirmation-buttons button {
+  position: relative;
+  min-width: 120px;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+}
+
+.confirmation-buttons .confirm-button {
+  background: linear-gradient(to right, #0ea5e9, #06b6d4);
+  color: white;
+  box-shadow: 0 2px 4px rgba(14, 165, 233, 0.15),
+              0 0 0 1px rgba(14, 165, 233, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.confirmation-buttons .confirm-button:hover {
+  background: linear-gradient(to right, #0284c7, #0891b2);
+  box-shadow: 0 4px 8px rgba(14, 165, 233, 0.2),
+              0 0 0 1px rgba(14, 165, 233, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.confirmation-buttons .cancel-button {
+  background: #f8fafc;
+  color: #475569;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05),
+              0 0 0 1px rgba(0, 0, 0, 0.05),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(203, 213, 225, 0.4);
+}
+
+.confirmation-buttons .cancel-button:hover {
+  background: #f1f5f9;
+  color: #334155;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08),
+              0 0 0 1px rgba(0, 0, 0, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.confirmation-buttons button:active {
+  transform: translateY(0);
+  transition-duration: 0.1s;
+}
+
+.confirmation-buttons button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(14, 165, 233, 0.3);
+}
+
+.confirmation-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: saturate(0.8);
+}
+
+.confirmation-buttons button svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+.confirmation-buttons button span {
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+/* Remove the old confirmation button styles that were nested under .main-content .chat-bubble */
+.main-content .chat-bubble .confirmation-buttons,
+.main-content .chat-bubble .confirmation-buttons button,
+.main-content .chat-bubble .confirmation-buttons .confirm-button,
+.main-content .chat-bubble .confirmation-buttons .confirm-button:hover,
+.main-content .chat-bubble .confirmation-buttons .cancel-button,
+.main-content .chat-bubble .confirmation-buttons .cancel-button:hover,
+.main-content .chat-bubble .confirmation-buttons button:active,
+.main-content .chat-bubble .confirmation-buttons button:focus,
+.main-content .chat-bubble .confirmation-buttons button:disabled,
+.main-content .chat-bubble .confirmation-buttons button svg,
+.main-content .chat-bubble .confirmation-buttons button span {
+  /* Reset all the !important styles */
+  all: unset;
+}
+
+.message-confirmation {
+  margin-top: 1rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.6) !important;
+}
+
+.message-confirmation .confirmation-header {
+  margin-bottom: 0.75rem !important;
+}
+
+.message-confirmation .confirmation-header h3 {
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  margin: 0 0 0.5rem 0 !important;
+}
+
+.message-confirmation .confirmation-question {
+  font-size: 0.875rem !important;
+  color: #475569 !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+
+.message-confirmation .confirmation-buttons {
+  display: flex !important;
+  gap: 0.75rem !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+}
+
+.message-confirmation .confirmation-buttons button {
+  position: relative !important;
+  min-width: 100px !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  border: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  font-family: inherit !important;
+}
+
+.message-confirmation .confirmation-buttons .confirm-button {
+  background: linear-gradient(to right, #0ea5e9, #0284c7) !important;
+  color: white !important;
+  box-shadow: 0 1px 2px rgba(14, 165, 233, 0.2),
+              0 0 0 1px rgba(14, 165, 233, 0.1) !important;
+}
+
+.message-confirmation .confirmation-buttons .confirm-button:hover {
+  background: linear-gradient(to right, #0284c7, #0369a1) !important;
+  box-shadow: 0 2px 4px rgba(14, 165, 233, 0.3),
+              0 0 0 1px rgba(14, 165, 233, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+.message-confirmation .confirmation-buttons .cancel-button {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05),
+              0 0 0 1px rgba(203, 213, 225, 0.5) !important;
+}
+
+.message-confirmation .confirmation-buttons .cancel-button:hover {
+  background: #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
+              0 0 0 1px rgba(203, 213, 225, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+.message-confirmation .confirmation-buttons button:active {
+  transform: translateY(0) !important;
+  transition-duration: 0.1s !important;
+}
+
+.message-confirmation .confirmation-buttons button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(14, 165, 233, 0.3) !important;
+}
+
+.message-confirmation .confirmation-buttons button svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke-width: 2 !important;
+  flex-shrink: 0 !important;
+}
+
+.message-confirmation .confirmation-buttons button span {
+  font-weight: 500 !important;
+  line-height: 1.25 !important;
+}
+
+/* Remove the old confirmation container styles since we're now embedding the confirmation UI in the message */
+.confirmation-container,
+.confirmation-sidebar,
+.confirmation-header,
+.confirmation-question,
+.confirmation-buttons,
+.confirmation-buttons button,
+.confirmation-buttons .confirm-button,
+.confirmation-buttons .confirm-button:hover,
+.confirmation-buttons .cancel-button,
+.confirmation-buttons .cancel-button:hover,
+.confirmation-buttons button:active,
+.confirmation-buttons button:focus,
+.confirmation-buttons button:disabled,
+.confirmation-buttons button svg,
+.confirmation-buttons button span {
+  /* Reset all the styles */
+  all: unset;
 }

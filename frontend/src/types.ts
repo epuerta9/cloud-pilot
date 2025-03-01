@@ -5,8 +5,29 @@ export interface Message {
   timestamp: Date;
   structuredContent?: StructuredContent;
   requiresConfirmation?: boolean;
-  confirmationData?: any;
+  confirmationData?: ConfirmationData;
   isConfirmationResponse?: boolean;
+}
+
+export interface ConfirmationData {
+  flow_id?: string;
+  plan_json?: TerraformPlanJson;
+  plan_output?: string;
+  question?: string;
+  status?: string;
+  type?: string;
+}
+
+export interface TerraformPlanJson {
+  format_version?: string;
+  terraform_version?: string;
+  planned_values?: any;
+  configuration?: any;
+  errored?: boolean;
+  complete?: boolean;
+  applyable?: boolean;
+  timestamp?: string;
+  root_module?: any;
 }
 
 // Define a specific type for table rows
@@ -28,4 +49,4 @@ export interface ContentSection {
 export interface StructuredContent {
   title: string;
   sections: ContentSection[];
-} 
+}

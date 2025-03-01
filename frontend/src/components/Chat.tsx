@@ -8,7 +8,7 @@ import ThinkingIndicator from './ThinkingIndicator';
 import VoiceInput from './VoiceInput';
 import DocumentView from './DocumentView';
 import AwsDashboard from './AwsDashboard';
-import { Message, StructuredContent } from '../types';
+import { Message, StructuredContent, ContentSection } from '../types';
 import { ApiService } from '../services/api';
 import SettingsModal from './SettingsModal';
 import { FileText, Cloud, ChartLineUp, CurrencyDollar, Cpu, Shield, Database, Rocket } from 'phosphor-react';
@@ -50,6 +50,12 @@ const Chat: React.FC = () => {
       setIsThinking(false);
       setIsStreaming(false);
       setStreamingContent('');
+
+      // If there's structured content, update the document view
+      if (lastResult.structuredContent) {
+        setCurrentDocument(lastResult.structuredContent);
+        setActiveTab('document');
+      }
     }
   }, [lastResult]);
 
@@ -59,12 +65,77 @@ const Chat: React.FC = () => {
       const confirmationMessage: Message = {
         id: Date.now().toString(),
         role: 'system',
-        content: `Confirmation required: ${confirmationData.question || 'Do you want to proceed?'}`,
+        content: confirmationData.question || 'Do you want to proceed with this action?',
         timestamp: new Date(),
         requiresConfirmation: true,
         confirmationData: confirmationData,
       };
       setMessages(prev => [...prev, confirmationMessage]);
+
+      // Create structured content for the document view when we have confirmation data
+      if (confirmationData.plan_json) {
+        const planJson = confirmationData.plan_json;
+        const sections: ContentSection[] = [];
+
+        // Add title section
+        sections.push({
+          type: 'heading',
+          content: 'Terraform Plan Details',
+          metadata: { level: 1 }
+        });
+
+        // Add status section
+        sections.push({
+          type: 'text',
+          content: `Status: ${planJson.errored ? 'Error' : planJson.complete ? 'Complete' : 'Pending'}`
+        });
+
+        // Add version info
+        if (planJson.terraform_version) {
+          sections.push({
+            type: 'text',
+            content: `Terraform Version: ${planJson.terraform_version}`
+          });
+        }
+
+        // Add timestamp
+        if (planJson.timestamp) {
+          sections.push({
+            type: 'text',
+            content: `Timestamp: ${planJson.timestamp}`
+          });
+        }
+
+        // Add the full JSON as a code block
+        sections.push({
+          type: 'code',
+          content: JSON.stringify(planJson, null, 2),
+          metadata: { language: 'json' }
+        });
+
+        // Add plan output if available
+        if (confirmationData.plan_output) {
+          sections.push({
+            type: 'heading',
+            content: 'Plan Output',
+            metadata: { level: 2 }
+          });
+
+          sections.push({
+            type: 'code',
+            content: confirmationData.plan_output,
+            metadata: { language: 'shell' }
+          });
+        }
+
+        const terraformPlanContent: StructuredContent = {
+          title: 'Terraform Plan',
+          sections
+        };
+
+        setCurrentDocument(terraformPlanContent);
+        setActiveTab('document');
+      }
     }
   }, [confirmationData]);
 
@@ -148,6 +219,11 @@ const Chat: React.FC = () => {
         isConfirmationResponse: true,
       };
       setMessages(prev => [...prev, responseMessage]);
+
+      // If user cancels, switch back to chat view
+      if (!confirmed) {
+        setActiveTab('chat');
+      }
     }
   };
 
@@ -263,7 +339,7 @@ const Chat: React.FC = () => {
             <span className="logo-text">Cloud Pilot</span>
           </Link>
           <h1 className="chat-title">
-            {activeTab === 'chat' ? 'New Chat' : 'AWS Setup'}
+            {activeTab === 'chat' ? 'New Chat' : activeTab === 'aws' ? 'AWS Setup' : 'Document View'}
           </h1>
           {messages.length > 0 && (
             <button
@@ -391,10 +467,15 @@ const Chat: React.FC = () => {
                 <FileText size={20} className="document-icon" />
                 <span className="document-header-title">Document View</span>
               </>
-            ) : (
+            ) : activeTab === 'aws' ? (
               <>
                 <ChartLineUp size={20} className="document-icon" />
                 <span className="document-header-title">AWS Dashboard</span>
+              </>
+            ) : (
+              <>
+                <FileText size={20} className="document-icon" />
+                <span className="document-header-title">{currentDocument?.title || "Document View"}</span>
               </>
             )}
           </div>
@@ -405,6 +486,14 @@ const Chat: React.FC = () => {
             >
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
               Chat
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'document' ? 'active' : ''}`}
+              onClick={() => setActiveTab('document')}
+              disabled={!currentDocument}
+            >
+              <FileText size={20} />
+              Document
             </button>
             <button
               className={`tab-button ${activeTab === 'aws' ? 'active' : ''}`}
@@ -423,10 +512,12 @@ const Chat: React.FC = () => {
           </div>
         </div>
         <div className="document-content">
-          {activeTab === 'chat' ? (
+          {activeTab === 'document' ? (
             <DocumentView content={currentDocument} isStreaming={isStreaming} />
-          ) : (
+          ) : activeTab === 'aws' ? (
             <AwsDashboard />
+          ) : (
+            <DocumentView content={undefined} isStreaming={isStreaming} />
           )}
         </div>
       </div>
