@@ -73,8 +73,8 @@ const Chat: React.FC = () => {
       setMessages(prev => [...prev, confirmationMessage]);
 
       // Create structured content for the document view when we have confirmation data
-      if (confirmationData.plan_json) {
-        const planJson = confirmationData.plan_json;
+      if (confirmationData.terraform_json) {
+        const planJson = confirmationData.terraform_json;
         const sections: ContentSection[] = [];
 
         // Add title section

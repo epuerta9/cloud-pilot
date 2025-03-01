@@ -205,4 +205,152 @@
   font-size: 0.9375rem;
   max-width: 24rem;
   line-height: 1.6;
-} 
+}
+
+.document-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.5rem 0;
+  width: 100%;
+}
+
+.document-tag-container {
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+}
+
+.document-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+  white-space: nowrap;
+  max-width: 100%;
+  height: 32px;
+}
+
+.document-tag span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-tag svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-right: 0.25rem;
+}
+
+.document-tag.success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: rgb(6, 95, 70);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.document-tag.error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: rgb(153, 27, 27);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.document-tag.pending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: rgb(146, 64, 14);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.document-tag.info {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: rgb(30, 64, 175);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.document-tag.neutral {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: rgb(55, 65, 81);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.document-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Document content styling */
+.document-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+
+.document-sections {
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.document-heading {
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.heading-1 {
+  font-size: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.heading-2 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.heading-3 {
+  font-size: 1.125rem;
+}
+
+.document-paragraph {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.document-code-block {
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  max-width: 100%;
+}
+
+.document-code-block pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.document-code-block code {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background-color: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.75rem;
+}

@@ -4,6 +4,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { StructuredContent, ContentSection, TableRow } from '../types';
 import { motion } from 'framer-motion';
 import { ClipboardText, FileText, ArrowRight, Code, Table, ListBullets, Calendar, CheckCircle, Warning, Clock } from 'phosphor-react';
+import './DocumentView.css';
 
 interface DocumentViewProps {
   content?: StructuredContent;

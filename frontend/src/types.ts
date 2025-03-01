@@ -11,7 +11,7 @@ export interface Message {
 
 export interface ConfirmationData {
   flow_id?: string;
-  plan_json?: TerraformPlanJson;
+  terraform_json?: TerraformPlanJson;
   plan_output?: string;
   question?: string;
   status?: string;

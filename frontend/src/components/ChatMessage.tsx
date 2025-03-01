@@ -123,7 +123,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
               {formattedTime}
             </div>
 
-            {message.requiresConfirmation && message.confirmationData?.plan_json && (
+            {message.requiresConfirmation && message.confirmationData?.terraform_json && (
               <div className="message-confirmation">
                 <div className="confirmation-header">
                   {!content.toLowerCase().includes('confirmation required') && (

@@ -93,7 +93,7 @@ async def websocket_endpoint(websocket: WebSocket):
                                 "status": "waiting_for_input",
                                 "question": interrupt_data.get("question"),
                                 "plan_output": interrupt_data.get("plan_output"),
-                                "plan_json": interrupt_data.get("plan_json"),
+                                "terraform_json": interrupt_data.get("terraform_json"),
                             })
                             break
 

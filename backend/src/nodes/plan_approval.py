@@ -11,7 +11,7 @@ def plan_approval(state: CloudPilotState) -> Command[Literal["execute_terraform"
         {
             "question": "Is this correct?",
             "plan_output": state["result"],
-            "plan_json": state["terraform_json"],
+            "terraform_json": state["terraform_json"],
         }
     )
     print(is_approved)
