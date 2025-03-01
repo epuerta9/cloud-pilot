@@ -92,7 +92,7 @@ class WebSocketService extends EventEmitter {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       const message: WebSocketMessage = {
         type: 'confirmation_response',
-        confirmed,
+        approved: confirmed,
         ...data
       };
       this.ws.send(JSON.stringify(message));

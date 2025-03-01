@@ -42,9 +42,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   const { role, content, timestamp } = message;
   const isUser = role === 'user';
   const bubbleClass = isUser ? 'user-bubble' : 'assistant-bubble';
-  
-  const formattedTime = timestamp.toLocaleTimeString([], { 
-    hour: '2-digit', 
+
+  const formattedTime = timestamp.toLocaleTimeString([], {
+    hour: '2-digit',
     minute: '2-digit'
   });
 
@@ -53,7 +53,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   };
 
   return (
-    <motion.div 
+    <motion.div
       className={`chat-bubble ${bubbleClass}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -78,7 +78,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
                       <div className="syntax-highlighter-wrapper">
                         <div className="code-header">
                           <span className="code-language">{match[1]}</span>
-                          <button 
+                          <button
                             className="copy-button"
                             onClick={() => copyToClipboard(String(children).replace(/\n$/, ''))}
                             aria-label="Copy code"
@@ -123,18 +123,27 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
           </div>
         </div>
         {message.requiresConfirmation && (
-          <div className="confirmation-buttons">
-            <button onClick={onConfirm} className="confirm-button">
-              Confirm
-            </button>
-            <button onClick={onCancel} className="cancel-button">
-              Cancel
-            </button>
-          </div>
+          <>
+            {message.confirmationData?.plan_output && (
+              <div className="plan-output markdown-content">
+                <ReactMarkdown>
+                  {message.confirmationData.plan_output}
+                </ReactMarkdown>
+              </div>
+            )}
+            <div className="confirmation-buttons">
+              <button onClick={onConfirm} className="confirm-button">
+                Confirm
+              </button>
+              <button onClick={onCancel} className="cancel-button">
+                Cancel
+              </button>
+            </div>
+          </>
         )}
       </div>
     </motion.div>
   );
 };
 
-export default ChatMessage; 
+export default ChatMessage;
