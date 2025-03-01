@@ -1,71 +1,70 @@
 """Node for handling Terraform plan operations."""
 
 import os
+import subprocess
 from typing import Dict
-from pathlib import Path
 
 from src.state import CloudPilotState
-from src.agents.terraform_agent import TerraformAgent
-
+from src.constants import ACTION_USER_INTERACTION, ACTION_APPROVE_PLAN
 
 def terraform_plan(state: CloudPilotState) -> CloudPilotState:
     """
-    Create and save a Terraform plan for review.
+    Create a Terraform plan.
 
     Args:
-        state: The current state of the graph
+        state: The current state of the application
 
     Returns:
-        Updated state with plan results and next action
+        Updated state with the plan result
     """
     # Create a copy of the state to modify
     new_state = state.copy()
 
     try:
-        # Initialize the Terraform agent
-        tf_agent = TerraformAgent()
-
         # Check if we have a terraform file path
-        if not state["terraform_file_path"]:
-            new_state["error"] = "No Terraform file path specified"
-            new_state["next_action"] = "user_interaction"
+        if not new_state.get("terraform_file_path"):
+            new_state["error"] = "No Terraform file path provided"
+            new_state["next_action"] = ACTION_USER_INTERACTION
             return new_state
 
-        # Verify the file exists
-        if not os.path.exists(state["terraform_file_path"]):
-            new_state["error"] = f"Terraform file not found: {state['terraform_file_path']}"
-            new_state["next_action"] = "user_interaction"
-            return new_state
+        # Change to the directory containing the Terraform file
+        terraform_dir = os.path.dirname(new_state["terraform_file_path"])
+        if not terraform_dir:
+            terraform_dir = "."
 
-        # Get the directory containing the Terraform file
-        terraform_dir = os.path.dirname(state["terraform_file_path"])
-
-        # Generate the plan file path with .plan.out.tf suffix
-        plan_file = os.path.join(terraform_dir, "terraform.plan.out.tf")
-
-        # Run terraform plan and save to file
-        plan_result = tf_agent.terraform_plan(terraform_dir)
-
-        if "Error:" in plan_result:
-            new_state["error"] = plan_result
-            new_state["next_action"] = "user_interaction"
-            return new_state
-
-        # Save the plan to file
         try:
-            with open(plan_file, "w") as f:
-                f.write(plan_result)
-            new_state["result"] = f"Terraform plan created and saved to {plan_file}\n\nPlan Output:\n{plan_result}"
+            os.chdir(terraform_dir)
         except Exception as e:
-            new_state["error"] = f"Error saving plan file: {str(e)}"
-            new_state["next_action"] = "user_interaction"
+            new_state["error"] = f"Failed to change to directory {terraform_dir}: {str(e)}"
+            new_state["next_action"] = ACTION_USER_INTERACTION
             return new_state
 
-        # Set next action to wait for plan approval
-        new_state["next_action"] = "plan_approval"
+        # Initialize Terraform if needed
+        try:
+            subprocess.run(["terraform", "init"], check=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            new_state["error"] = f"Terraform init failed: {e.stderr.decode()}"
+            new_state["next_action"] = ACTION_USER_INTERACTION
+            return new_state
+
+        # Create the plan
+        try:
+            result = subprocess.run(
+                ["terraform", "plan", "-no-color"],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            new_state["result"] = result.stdout
+            new_state["next_action"] = ACTION_APPROVE_PLAN
+
+        except subprocess.CalledProcessError as e:
+            new_state["error"] = f"Terraform plan failed: {e.stderr}"
+            new_state["next_action"] = ACTION_USER_INTERACTION
+            return new_state
 
     except Exception as e:
-        new_state["error"] = f"Error in terraform plan: {str(e)}"
-        new_state["next_action"] = "user_interaction"
+        new_state["error"] = f"Error in terraform_plan: {str(e)}"
+        new_state["next_action"] = ACTION_USER_INTERACTION
 
     return new_state

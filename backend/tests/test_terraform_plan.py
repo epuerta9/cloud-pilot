@@ -7,6 +7,7 @@ from unittest.mock import patch, MagicMock
 from src.nodes.terraform_plan import terraform_plan
 from src.nodes.plan_approval import plan_approval
 from src.agents.terraform_agent import TerraformAgent
+from src.constants import ACTION_USER_INTERACTION, ACTION_APPROVE_PLAN, ACTION_GENERATE, ACTION_EXECUTE
 
 
 @pytest.fixture
@@ -50,59 +51,76 @@ def mock_terraform_agent():
         yield agent_instance
 
 
-def test_terraform_plan_success(mock_terraform_file, mock_terraform_agent):
-    """Test successful terraform plan creation."""
-    # Initial state
-    state = {
+@pytest.fixture
+def mock_state():
+    """Create a mock state for testing."""
+    return {
         "task": "Create an S3 bucket",
-        "terraform_code": "",
-        "terraform_file_path": mock_terraform_file,
+        "terraform_code": "resource \"aws_s3_bucket\" \"test\" {}",
+        "terraform_file_path": "test.tf",
         "result": "",
         "error": "",
         "user_input": "",
-        "next_action": "plan"
+        "next_action": ""
     }
 
-    # Run the plan node
-    new_state = terraform_plan(state)
 
-    # Verify the agent was called correctly
-    mock_terraform_agent.terraform_plan.assert_called_once_with(
-        os.path.dirname(mock_terraform_file)
+def test_terraform_plan_no_file_path():
+    """Test terraform_plan with no file path."""
+    state = {
+        "task": "Create an S3 bucket",
+        "terraform_code": "",
+        "terraform_file_path": "",
+        "result": "",
+        "error": "",
+        "user_input": "",
+        "next_action": ""
+    }
+
+    result = terraform_plan(state)
+
+    assert result["error"] == "No Terraform file path provided"
+    assert result["next_action"] == ACTION_USER_INTERACTION
+
+
+@patch('subprocess.run')
+def test_terraform_plan_success(mock_run, mock_state):
+    """Test successful terraform plan execution."""
+    mock_run.return_value = MagicMock(
+        stdout="Plan: 1 to add, 0 to change, 0 to destroy.",
+        stderr=""
     )
 
-    # Check the state was updated correctly
-    assert new_state["error"] == ""
-    assert "Plan: 1 to add" in new_state["result"]
-    assert new_state["next_action"] == "plan_approval"
-    assert os.path.exists(os.path.join(
-        os.path.dirname(mock_terraform_file),
-        "terraform.plan.out.tf"
-    ))
+    result = terraform_plan(mock_state)
+
+    assert "Plan: 1 to add" in result["result"]
+    assert result["next_action"] == ACTION_APPROVE_PLAN
+    assert not result["error"]
 
 
-def test_terraform_plan_error(mock_terraform_file, mock_terraform_agent):
-    """Test terraform plan with error."""
-    # Mock an error response
-    mock_terraform_agent.terraform_plan.return_value = "Error: Invalid resource type"
+@patch('subprocess.run')
+def test_terraform_plan_init_failure(mock_run, mock_state):
+    """Test terraform plan with init failure."""
+    mock_run.side_effect = Exception("Failed to initialize")
 
-    # Initial state
-    state = {
-        "task": "Create an S3 bucket",
-        "terraform_code": "",
-        "terraform_file_path": mock_terraform_file,
-        "result": "",
-        "error": "",
-        "user_input": "",
-        "next_action": "plan"
-    }
+    result = terraform_plan(mock_state)
 
-    # Run the plan node
-    new_state = terraform_plan(state)
+    assert "Error in terraform_plan" in result["error"]
+    assert result["next_action"] == ACTION_USER_INTERACTION
 
-    # Check error handling
-    assert "Error:" in new_state["error"]
-    assert new_state["next_action"] == "user_interaction"
+
+@patch('subprocess.run')
+def test_terraform_plan_execution_failure(mock_run, mock_state):
+    """Test terraform plan execution failure."""
+    mock_run.side_effect = [
+        MagicMock(stdout="", stderr=""),  # init succeeds
+        Exception("Plan failed")  # plan fails
+    ]
+
+    result = terraform_plan(mock_state)
+
+    assert "Error in terraform_plan" in result["error"]
+    assert result["next_action"] == ACTION_USER_INTERACTION
 
 
 def test_plan_approval_approve(monkeypatch):
@@ -118,14 +136,14 @@ def test_plan_approval_approve(monkeypatch):
         "result": "Plan: 1 to add, 0 to change, 0 to destroy.",
         "error": "",
         "user_input": "",
-        "next_action": "plan_approval"
+        "next_action": ACTION_APPROVE_PLAN
     }
 
     # Run the approval node
     new_state = plan_approval(state)
 
     # Check the state was updated correctly
-    assert new_state["next_action"] == "execute_terraform"
+    assert new_state["next_action"] == ACTION_EXECUTE
     assert new_state["error"] == ""
 
 
@@ -142,14 +160,14 @@ def test_plan_approval_reject(monkeypatch):
         "result": "Plan: 1 to add, 0 to change, 0 to destroy.",
         "error": "",
         "user_input": "",
-        "next_action": "plan_approval"
+        "next_action": ACTION_APPROVE_PLAN
     }
 
     # Run the approval node
     new_state = plan_approval(state)
 
     # Check the state was updated correctly
-    assert new_state["next_action"] == "generate_terraform"
+    assert new_state["next_action"] == ACTION_GENERATE
     assert new_state["user_input"] == "modify"
     assert new_state["error"] == ""
 
@@ -167,7 +185,7 @@ def test_plan_approval_cancel(monkeypatch):
         "result": "Plan: 1 to add, 0 to change, 0 to destroy.",
         "error": "",
         "user_input": "",
-        "next_action": "plan_approval"
+        "next_action": ACTION_APPROVE_PLAN
     }
 
     # Run the approval node
@@ -188,7 +206,7 @@ def test_plan_approval_with_error():
         "result": "",
         "error": "Failed to create plan",
         "user_input": "",
-        "next_action": "plan_approval"
+        "next_action": ACTION_APPROVE_PLAN
     }
 
     # Run the approval node

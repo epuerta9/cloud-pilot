@@ -1,20 +1,23 @@
-"""Node for handling approval of Terraform plans."""
+"""Node for handling Terraform plan approval."""
 
 import os
 from typing import Dict
 
 from src.state import CloudPilotState
+from src.constants import (
+    ACTION_USER_INTERACTION, ACTION_EXECUTE, ACTION_GENERATE
+)
 
 
 def plan_approval(state: CloudPilotState) -> CloudPilotState:
     """
-    Handle approval for Terraform plans.
+    Handle the approval or rejection of a Terraform plan.
 
     Args:
-        state: The current state of the graph
+        state: The current state of the application
 
     Returns:
-        Updated state with approval decision
+        Updated state with the next action based on user's decision
     """
     # Create a copy of the state to modify
     new_state = state.copy()
@@ -33,30 +36,30 @@ def plan_approval(state: CloudPilotState) -> CloudPilotState:
         if state["error"]:
             print("\nErrors:")
             print(state["error"])
-            new_state["next_action"] = "user_interaction"
+            new_state["next_action"] = ACTION_USER_INTERACTION
             return new_state
 
         # Get user approval
-        print("\nDo you want to:")
-        print("1. Apply the Terraform plan")
-        print("2. Reject the plan and modify")
-        print("3. Cancel and return to main menu")
+        print("\nWhat would you like to do?")
+        print("1. Apply the plan")
+        print("2. Modify the code")
+        print("3. Cancel")
 
         choice = input("\nEnter your choice (1-3): ")
 
         if choice == "1":
             # Proceed with terraform apply
-            new_state["next_action"] = "execute_terraform"
+            new_state["next_action"] = ACTION_EXECUTE
         elif choice == "2":
             # Return to generate terraform for modifications
-            new_state["next_action"] = "generate_terraform"
+            new_state["next_action"] = ACTION_GENERATE
             new_state["user_input"] = "modify"  # Signal that we're modifying existing code
         else:
             # Return to main menu
-            new_state["next_action"] = "user_interaction"
+            new_state["next_action"] = ACTION_USER_INTERACTION
 
     except Exception as e:
         new_state["error"] = f"Error in plan approval: {str(e)}"
-        new_state["next_action"] = "user_interaction"
+        new_state["next_action"] = ACTION_USER_INTERACTION
 
     return new_state
