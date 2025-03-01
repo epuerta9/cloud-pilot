@@ -77,7 +77,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         initial_state,
                         {"configurable": {
                             "flow_id": flow_id,
-                            "interrupt": lambda data, state: handle_interrupt(data, state, flow_id),
                             "thread_id": flow_id,
                         }}
                     ):
@@ -86,27 +85,16 @@ async def websocket_endpoint(websocket: WebSocket):
 
                         if '__interrupt__' in event:
                             # If this is a user interrupt, send the question to the client
-                            interrupt_data = event.get("interrupt_data", {})
+                            interrupt_data = event['__interrupt__'][0].value
                             await websocket.send_json({
                                 "type": "confirmation",
                                 "flow_id": flow_id,
                                 "status": "waiting_for_input",
                                 "question": interrupt_data.get("question"),
+                                "plan_output": interrupt_data.get("plan_output"),
                             })
                             break
 
-                        if flow_id in pending_interactions:
-                            # We hit an interrupt, send the question to the client
-                            interrupt_data = event.get("interrupt_data", {})
-                            await websocket.send_json({
-                                "type": "interrupt",
-                                "flow_id": flow_id,
-                                "status": "waiting_for_input",
-                                "question": interrupt_data.get("question"),
-                                "plan_output": interrupt_data.get("plan_output"),
-                                "terraform_code": interrupt_data.get("terraform_code")
-                            })
-                            break
                         else:
                             # Send progress event to the client
                             await websocket.send_json({
