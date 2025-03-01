@@ -5,24 +5,24 @@ import shutil
 import glob
 from typing import Dict, List, Optional
 
-from llama_index.llms.openai import OpenAI
+from llama_index.llms.anthropic import Anthropic
 from llama_index.core import Settings
 from llama_index.core.tools import BaseTool, FunctionTool
-
+from src.constants import ANTHROPIC_MODEL
 
 class FileSystemAgent:
     """Agent for performing file system operations."""
-    
-    def __init__(self, model_name: str = "gpt-4"):
+
+    def __init__(self, model_name: str = ANTHROPIC_MODEL):
         """
         Initialize the file system agent.
-        
+
         Args:
-            model_name: The name of the OpenAI model to use
+            model_name: The name of the Anthropic model to use
         """
-        self.llm = OpenAI(model=model_name)
+        self.llm = Anthropic(model=model_name)
         self.tools = self._create_tools()
-    
+
     def _create_tools(self) -> List[BaseTool]:
         """Create tools for the agent to use."""
         tools = [
@@ -63,14 +63,14 @@ class FileSystemAgent:
             ),
         ]
         return tools
-    
+
     def list_files(self, path: str) -> List[str]:
         """
         List files in a directory.
-        
+
         Args:
             path: Path to the directory
-            
+
         Returns:
             List of files in the directory
         """
@@ -82,14 +82,14 @@ class FileSystemAgent:
                 return glob.glob(path)
         except Exception as e:
             return [f"Error listing files: {str(e)}"]
-    
+
     def read_file(self, file_path: str) -> str:
         """
         Read a file from disk.
-        
+
         Args:
             file_path: Path to the file
-            
+
         Returns:
             The contents of the file
         """
@@ -98,37 +98,37 @@ class FileSystemAgent:
                 return f.read()
         except Exception as e:
             return f"Error reading file: {str(e)}"
-    
+
     def write_file(self, file_path: str, content: str) -> str:
         """
         Write content to a file.
-        
+
         Args:
             file_path: Path to write the file to
             content: The content to write
-            
+
         Returns:
             A success or error message
         """
         try:
             # Create the directory if it doesn't exist
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            
+
             with open(file_path, "w") as f:
                 f.write(content)
-            
+
             return f"Successfully wrote to {file_path}"
         except Exception as e:
             return f"Error writing file: {str(e)}"
-    
+
     def copy_file(self, source: str, destination: str) -> str:
         """
         Copy a file or directory.
-        
+
         Args:
             source: Source path
             destination: Destination path
-            
+
         Returns:
             A success or error message
         """
@@ -143,15 +143,15 @@ class FileSystemAgent:
                 return f"Source not found: {source}"
         except Exception as e:
             return f"Error copying: {str(e)}"
-    
+
     def move_file(self, source: str, destination: str) -> str:
         """
         Move a file or directory.
-        
+
         Args:
             source: Source path
             destination: Destination path
-            
+
         Returns:
             A success or error message
         """
@@ -160,14 +160,14 @@ class FileSystemAgent:
             return f"Moved from {source} to {destination}"
         except Exception as e:
             return f"Error moving: {str(e)}"
-    
+
     def delete_file(self, path: str) -> str:
         """
         Delete a file or directory.
-        
+
         Args:
             path: Path to delete
-            
+
         Returns:
             A success or error message
         """
@@ -182,14 +182,14 @@ class FileSystemAgent:
                 return f"Path not found: {path}"
         except Exception as e:
             return f"Error deleting: {str(e)}"
-    
+
     def create_directory(self, path: str) -> str:
         """
         Create a directory.
-        
+
         Args:
             path: Path to create
-            
+
         Returns:
             A success or error message
         """
@@ -198,27 +198,27 @@ class FileSystemAgent:
             return f"Created directory: {path}"
         except Exception as e:
             return f"Error creating directory: {str(e)}"
-    
+
     def parse_file_operation(self, user_input: str) -> Dict:
         """
         Parse a user's request for a file system operation.
-        
+
         Args:
             user_input: The user's request
-            
+
         Returns:
             A dictionary with the parsed operation details
         """
         prompt = f"""
         Parse the following user request for a file system operation:
         "{user_input}"
-        
+
         Determine:
         1. The type of operation (list, read, write, copy, move, delete, create_dir)
         2. The source path(s)
         3. The destination path (if applicable)
         4. The content (if writing a file)
-        
+
         Return a JSON object with these fields:
         {{
             "operation": "list|read|write|copy|move|delete|create_dir",
@@ -226,12 +226,12 @@ class FileSystemAgent:
             "destination": "path/to/destination",
             "content": "file content if writing"
         }}
-        
+
         Only include relevant fields. Return only the JSON, no explanations.
         """
-        
+
         response = self.llm.complete(prompt)
-        
+
         # Parse the response to get the operation details
         import json
         try:
@@ -242,14 +242,14 @@ class FileSystemAgent:
                 "error": "Failed to parse operation details",
                 "raw_response": response.text
             }
-    
+
     def execute_operation(self, operation_details: Dict) -> str:
         """
         Execute a file system operation based on the parsed details.
-        
+
         Args:
             operation_details: The parsed operation details
-            
+
         Returns:
             The result of the operation
         """
@@ -257,28 +257,28 @@ class FileSystemAgent:
         source = operation_details.get("source", "")
         destination = operation_details.get("destination", "")
         content = operation_details.get("content", "")
-        
+
         if operation == "list":
             files = self.list_files(source)
             return f"Files in {source}:\n" + "\n".join(files)
-        
+
         elif operation == "read":
             return self.read_file(source)
-        
+
         elif operation == "write":
             return self.write_file(source, content)
-        
+
         elif operation == "copy":
             return self.copy_file(source, destination)
-        
+
         elif operation == "move":
             return self.move_file(source, destination)
-        
+
         elif operation == "delete":
             return self.delete_file(source)
-        
+
         elif operation == "create_dir":
             return self.create_directory(source)
-        
+
         else:
-            return f"Unknown operation: {operation}" 
+            return f"Unknown operation: {operation}"

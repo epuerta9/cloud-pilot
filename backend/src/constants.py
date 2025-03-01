@@ -18,3 +18,5 @@ ACTION_PLAN = "plan"
 ACTION_APPROVE_PLAN = "approve_plan"
 ACTION_USER_INTERACTION = "user_interaction"
 ACTION_END = "end"
+
+ANTHROPIC_MODEL = "claude-3-5-sonnet-20240620"

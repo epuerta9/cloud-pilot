@@ -3,23 +3,23 @@
 import os
 from typing import Dict, List, Optional
 
-from llama_index.llms.openai import OpenAI
+from llama_index.llms.anthropic import Anthropic
 from llama_index.core import Settings
 from llama_index.core.tools import BaseTool, FunctionTool
 import subprocess
-
+from src.constants import ANTHROPIC_MODEL
 
 class TerraformAgent:
     """Agent for working with Terraform code."""
 
-    def __init__(self, model_name: str = "gpt-4"):
+    def __init__(self, model_name: str = ANTHROPIC_MODEL):
         """
         Initialize the Terraform agent.
 
         Args:
-            model_name: The name of the OpenAI model to use
+            model_name: The name of the Anthropic model to use
         """
-        self.llm = OpenAI(model=model_name)
+        self.llm = Anthropic(model=model_name)
         self.tools = self._create_tools()
 
     def _create_tools(self) -> List[BaseTool]:

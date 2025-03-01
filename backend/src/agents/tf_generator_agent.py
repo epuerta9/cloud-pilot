@@ -2,15 +2,14 @@
 
 import os
 import subprocess
-from typing import Dict, List, Optional, Tuple
-from llama_index.llms.openai import OpenAI
+from typing import Tuple
 from llama_index.llms.anthropic import Anthropic
-
+from src.constants import ANTHROPIC_MODEL
 
 class TerraformGeneratorAgent:
     """Agent for generating and managing Terraform configurations."""
 
-    def __init__(self, model_name: str = "claude-3-5-sonnet-20240620"):
+    def __init__(self, model_name: str = ANTHROPIC_MODEL):
         """Initialize the Terraform generator agent."""
         self.terraform_dir = "./terraform"
         self.existing_files = {}

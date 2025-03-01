@@ -9,8 +9,14 @@ from langgraph.graph.message import add_messages
 from langchain_core.messages import HumanMessage, AIMessage
 
 from src.nodes.generate_terraform import generate_terraform
-from src.nodes.analyze_terraform import analyze_terraform
 from src.nodes.terraform_plan import terraform_plan
+from src.nodes.plan_approval import plan_approval, handle_plan_feedback
+from src.nodes.execute_terraform import execute_terraform
+
+from src.constants import (
+    NODE_GENERATE_TERRAFORM, NODE_TERRAFORM_PLAN, NODE_PLAN_APPROVAL,
+    NODE_EXECUTE_TERRAFORM, ACTION_EXECUTE, ACTION_GENERATE, ACTION_USER_INTERACTION
+)
 
 class State(TypedDict):
     """State definition for the graph."""
@@ -27,21 +33,37 @@ class State(TypedDict):
 
 def build_example_graph() -> StateGraph:
     """Build the Terraform generation workflow graph."""
-    
+
     # Create the graph with our state type
     graph = StateGraph(State)
-    
+
     # Add nodes for each step
-    graph.add_node("generate", generate_terraform)
-    graph.add_node("plan", terraform_plan)
-    
+    graph.add_node(NODE_GENERATE_TERRAFORM, generate_terraform)
+    graph.add_node(NODE_TERRAFORM_PLAN, terraform_plan)
+    graph.add_node(NODE_PLAN_APPROVAL, plan_approval)
+    graph.add_node(NODE_EXECUTE_TERRAFORM, execute_terraform)
+
     # Add edges to define the workflow
-    graph.add_edge("generate", "plan")
-    graph.add_edge("plan", END)
-    
+    graph.add_edge(NODE_GENERATE_TERRAFORM, NODE_TERRAFORM_PLAN)
+    graph.add_edge(NODE_TERRAFORM_PLAN, NODE_PLAN_APPROVAL)
+
+    # Add conditional edges from plan_approval based on user feedback
+    graph.add_conditional_edges(
+        NODE_PLAN_APPROVAL,
+        handle_plan_feedback,
+        {
+            ACTION_EXECUTE: NODE_EXECUTE_TERRAFORM,
+            ACTION_GENERATE: NODE_GENERATE_TERRAFORM,
+            ACTION_USER_INTERACTION: END
+        }
+    )
+
+    # Add edge from execute to end
+    graph.add_edge(NODE_EXECUTE_TERRAFORM, END)
+
     # Set the entry point
-    graph.set_entry_point("generate")
-    
+    graph.set_entry_point(NODE_GENERATE_TERRAFORM)
+
     return graph.compile()
 
 
@@ -51,12 +73,11 @@ graph = build_example_graph()
 print(graph.get_graph().draw_mermaid())
 
 
-
 def stream_graph_updates(user_input: str):
     """Stream updates from the graph execution."""
     # Create initial state with user message
     message = HumanMessage(content=user_input)
-    
+
     for event in graph.stream({"messages": [message]}):
         for value in event.values():
             if "messages" in value and value["messages"]:
@@ -68,7 +89,7 @@ def main():
     print("\n=== Starting Cloud Pilot ===")
     print("Describe your infrastructure needs and I'll help generate Terraform code.")
     print("Type 'quit', 'exit', or 'q' to end the session")
-    
+
     while True:
         try:
             user_input = input("\nUser: ")
@@ -77,11 +98,11 @@ def main():
                 break
 
             stream_graph_updates(user_input)
-            
+
         except Exception as e:
             print(f"\nError: {str(e)}")
             break
-    
+
     print("\n=== Session Complete ===")
 
 
