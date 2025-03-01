@@ -1,0 +1,220 @@
+/* VoiceInput.css */
+
+/* Container for the voice input component */
+.voice-input-container {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin: 0 8px;
+}
+
+/* Error message styling */
+.voice-error-message {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--error-color);
+  color: white;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.voice-error-message::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background-color: var(--error-color);
+}
+
+/* Main button styling */
+.voice-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Sound wave animation container */
+.voice-button::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 30%, rgba(255, 255, 255, 0.1) 60%, transparent 70%);
+  transform: scale(0);
+  transition: transform 0.3s ease;
+}
+
+.voice-button.recording::before {
+  animation: soundWave 2s infinite;
+}
+
+/* Hover effects */
+.voice-button:not(.disabled):not(.unsupported):hover {
+  transform: scale(1.05);
+  background: var(--primary-light);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.voice-button.recording:hover {
+  background: var(--accent-color);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.3);
+}
+
+.voice-button:not(.disabled):not(.unsupported):active {
+  transform: scale(0.95);
+  background: var(--primary-dark);
+}
+
+.voice-button.recording:active {
+  transform: scale(0.95);
+  background: var(--accent-color);
+}
+
+/* Recording state */
+.voice-button.recording {
+  background: var(--accent-color);
+  box-shadow: 0 0 0 rgba(255, 107, 74, 0.4);
+  animation: recordingPulse 2s infinite;
+}
+
+/* Disabled state */
+.voice-button.disabled {
+  background: var(--neutral-400);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Unsupported state */
+.voice-button.unsupported {
+  background: var(--neutral-400);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.voice-button.unsupported::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 140%;
+  background: var(--error-color);
+  transform: rotate(45deg);
+  animation: slashIn 0.3s ease;
+}
+
+/* Animations */
+@keyframes recordingPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 74, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 107, 74, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 74, 0);
+  }
+}
+
+@keyframes soundWave {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes slashIn {
+  from {
+    transform: rotate(45deg) scale(0);
+  }
+  to {
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Microphone icon animation */
+.voice-button svg {
+  transition: all 0.3s ease;
+}
+
+.voice-button.recording svg {
+  animation: micPulse 1s infinite;
+}
+
+@keyframes micPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Container for the microphone icon */
+.mic-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.2s ease;
+}
+
+/* Add a subtle animation for the recording state */
+.recording .mic-container {
+  animation: pulseMic 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseMic {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Microphone icon size and style */
+.voice-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-on-dark);
+}
+  
