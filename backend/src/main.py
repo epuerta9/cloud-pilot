@@ -9,7 +9,6 @@ from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.prebuilt.tool_executor import Command
-from langgraph.prebuilt.tool_executor import Command
 
 from src.nodes.generate_terraform import generate_terraform
 from src.nodes.terraform_plan import terraform_plan
@@ -38,10 +37,10 @@ def human_approval(state: Dict) -> Command[Literal["plan", "generate"]]:
     """Node for human approval of generated terraform."""
     # Copy state to preserve previous state
     new_state = state.copy()
-    
+
     # Get approval from human
     is_approved = input("\nIs this correct? (y/n): ").lower().startswith('y')
-    
+
     # Return command to route to next node
     if is_approved:
         return Command(goto="plan")
@@ -53,10 +52,10 @@ def human_approval(state: Dict) -> Command[Literal["plan", "generate"]]:
     """Node for human approval of generated terraform."""
     # Copy state to preserve previous state
     new_state = state.copy()
-    
+
     # Get approval from human
     is_approved = input("\nIs this correct? (y/n): ").lower().startswith('y')
-    
+
     # Return command to route to next node
     if is_approved:
         return Command(goto="plan")

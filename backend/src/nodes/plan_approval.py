@@ -67,25 +67,25 @@ def plan_approval2(state: CloudPilotState) -> CloudPilotState:
         return new_state
 
 
-def handle_plan_feedback(state: CloudPilotState) -> Literal[ACTION_EXECUTE, ACTION_GENERATE, ACTION_USER_INTERACTION]:
+def handle_plan_feedback(state: CloudPilotState) -> Literal['execute', 'generate', 'user_interaction']:
     """
     Handle the user's feedback on the Terraform plan.
-    
+
     Args:
         state: The current state containing the user's feedback
-        
+
     Returns:
         The next action to take based on the feedback
     """
     try:
         # Get user's decision
         is_approved = input("\nDo you want to apply this plan? (yes/no): ").lower().startswith('y')
-        
+
         if is_approved:
             return ACTION_EXECUTE
         else:
             return ACTION_GENERATE
-            
+
     except Exception as e:
         print(f"Error handling feedback: {str(e)}")
         return ACTION_USER_INTERACTION
