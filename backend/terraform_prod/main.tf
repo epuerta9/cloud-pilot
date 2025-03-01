@@ -29,14 +29,23 @@ resource "aws_internet_gateway" "cloudpilot_igw" {
   }
 }
 
-resource "aws_subnet" "cloudpilot_public_subnet" {
-  vpc_id                  = aws_vpc.cloudpilot_vpc.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
+resource "aws_subnet" "cloudpilot_public_subnet_1" {
+  vpc_id            = aws_vpc.cloudpilot_vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
 
   tags = {
-    Name = "cloudpilot_public_subnet"
+    Name = "cloudpilot_public_subnet_1"
+  }
+}
+
+resource "aws_subnet" "cloudpilot_public_subnet_2" {
+  vpc_id            = aws_vpc.cloudpilot_vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1b"
+
+  tags = {
+    Name = "cloudpilot_public_subnet_2"
   }
 }
 
@@ -53,14 +62,19 @@ resource "aws_route_table" "cloudpilot_public_rt" {
   }
 }
 
-resource "aws_route_table_association" "cloudpilot_public_rta" {
-  subnet_id      = aws_subnet.cloudpilot_public_subnet.id
+resource "aws_route_table_association" "cloudpilot_rta_public_subnet_1" {
+  subnet_id      = aws_subnet.cloudpilot_public_subnet_1.id
+  route_table_id = aws_route_table.cloudpilot_public_rt.id
+}
+
+resource "aws_route_table_association" "cloudpilot_rta_public_subnet_2" {
+  subnet_id      = aws_subnet.cloudpilot_public_subnet_2.id
   route_table_id = aws_route_table.cloudpilot_public_rt.id
 }
 
 resource "aws_security_group" "cloudpilot_sg" {
   name        = "cloudpilot_sg"
-  description = "Allow HTTP inbound traffic"
+  description = "Allow inbound traffic"
   vpc_id      = aws_vpc.cloudpilot_vpc.id
 
   ingress {
@@ -83,24 +97,32 @@ resource "aws_security_group" "cloudpilot_sg" {
   }
 }
 
-resource "aws_instance" "cloudpilot_webserver" {
-  ami                    = "ami-05b10e08d247fb927"
-  instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.cloudpilot_public_subnet.id
-  vpc_security_group_ids = [aws_security_group.cloudpilot_sg.id]
+resource "aws_lb" "cloudpilot_alb" {
+  name               = "cloudpilot-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.cloudpilot_sg.id]
+  subnets            = [aws_subnet.cloudpilot_public_subnet_1.id, aws_subnet.cloudpilot_public_subnet_2.id]
 
-  user_data = <<-EOF
-              #!/bin/bash
-              echo "Hello, World!" > index.html
-              nohup python -m SimpleHTTPServer 80 &
-              EOF
+  enable_deletion_protection = false
 
   tags = {
-    Name = "cloudpilot_webserver"
+    Name = "cloudpilot_alb"
   }
 }
 
-output "webserver_public_ip" {
-  value       = aws_instance.cloudpilot_webserver.public_ip
-  description = "Public IP address of the webserver"
+resource "aws_lb_listener" "cloudpilot_listener" {
+  load_balancer_arn = aws_lb.cloudpilot_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "No webservers available"
+      status_code  = "200"
+    }
+  }
 }

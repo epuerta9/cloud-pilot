@@ -1,6 +1,8 @@
 """Node for generating infrastructure code."""
 
 import os
+import json
+import subprocess
 from typing import Dict
 
 from llama_index.llms.openai import OpenAI
@@ -26,39 +28,109 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
     # Create a copy of the state to modify
     new_state = state.copy()
     
+    # Get absolute paths
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    output_dir = os.path.join(project_root, "terraform_prod")
+    
     try:
+        # Create output directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+        
         # Initialize agents
         interpreter = InterpreterAgent()
         tf_generator = TerraformGeneratorAgent()
 
         print(f"State: {state['messages']}")
         
-        # First, interpret the user's request into AWS services
-        
-        #aws_specification = interpreter.interpret_request(state["task"])
+        # Get AWS specification from messages
         aws_specification = " ".join([message.content for message in state["messages"]])
-        # Generate and validate Terraform code
-        tf_code, tf_validation = tf_generator.generate_terraform(aws_specification)
         
-        # Update the state with the results
+        # Generate Terraform code
+        tf_code = tf_generator.generate_code(aws_specification)
+        
+        # Write the generated code to main.tf
+        with open(os.path.join(output_dir, "main.tf"), "w") as f:
+            f.write(tf_code)
+            f.flush()
+            os.fsync(f.fileno())
+
+        # Run terraform init with -chdir
+        init_result = subprocess.run(
+            ["terraform", "-chdir=" + output_dir, "init"],
+            capture_output=True,
+            text=True
+        )
+        print(init_result.stdout)
+        if init_result.stderr:
+            print("Init Errors:", init_result.stderr)
+
+        # Run terraform plan with -chdir and save to file
+        plan_result = subprocess.run(
+            ["terraform", "-chdir=" + output_dir, "plan", "-out=tfplan"],
+            capture_output=True,
+            text=True
+        )
+        print(plan_result.stdout)
+        if plan_result.stderr:
+            print("Plan Errors:", plan_result.stderr)
+
+        # Convert plan to JSON using -chdir
+        show_result = subprocess.run(
+            ["terraform", "-chdir=" + output_dir, "show", "-json", "tfplan"],
+            capture_output=True,
+            text=True
+        )
+
+        # Save JSON plan to file
+        plan_json_path = os.path.join(output_dir, "plan.json")
+        try:
+            with open(plan_json_path, "w") as f:
+                f.write(show_result.stdout)
+        except Exception as e:
+            print(f"Error saving plan JSON: {str(e)}")
+
+        # Load the plan JSON if it exists
+        plan_data = None
+        if os.path.exists(plan_json_path):
+            try:
+                with open(plan_json_path, 'r') as f:
+                    plan_data = json.load(f)
+            except Exception as e:
+                print(f"Error loading plan JSON: {str(e)}")
+        
+        # Update the state with the results using absolute paths
         new_state["terraform_code"] = tf_code
-        new_state["terraform_file_path"] = os.path.join("terraform_prod", "main.tf")
+        new_state["terraform_file_path"] = os.path.join(output_dir, "main.tf")
+        new_state["terraform_plan"] = plan_data
         
         # Add sentinel to indicate Terraform was built
         new_state["terraform_built"] = True
         
-        # Store results
+        # Store results with validation output
+        validation_output = f"""
+        Init Output:
+        {init_result.stdout}
+        {init_result.stderr if init_result.stderr else ''}
+
+        Plan Output:
+        {plan_result.stdout}
+        {plan_result.stderr if plan_result.stderr else ''}
+        """
+
         new_state["result"] = f"""
+        Terraform Output: {validation_output}
         
-        Terraform Output: {tf_validation}
-        
-        Generated file:
+        Generated files:
         - Terraform: {new_state["terraform_file_path"]}
+        - Plan JSON: {plan_json_path if plan_data else "Not available"}
+
+        Plan Summary:
+        {json.dumps(plan_data["planned_values"], indent=2) if plan_data else "No plan data available"}
         """
         
         # Set error if validation failed
-        if "error" in tf_validation.lower() or "failed" in tf_validation.lower():
-            new_state["error"] = "Validation failed. Check result for details."
+        if plan_result.returncode != 0:
+            new_state["error"] = "Plan failed. Check result for details."
             new_state["terraform_built"] = False
         else:
             new_state["error"] = ""

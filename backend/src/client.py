@@ -32,7 +32,7 @@ class CloudPilotClient:
         approved = user_input.startswith('y')
         
         # Resume the run with user's response
-        self.client.runs.create(self.thread_id,"agent", command=Command(resume=approved))
+        self.client.runs.create(self.thread_id,"agent", command=Command(resume={"approved": approved}))
 
     def chat(self, message: str) -> None:
         """

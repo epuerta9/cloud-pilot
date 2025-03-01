@@ -57,15 +57,35 @@ class TerraformGeneratorAgent:
 
         return True
 
-    def generate_terraform(self, aws_specification: str, output_dir: str = "terraform_prod", retry_count: int = 0) -> Tuple[str, str]:
+    def generate_code(self, aws_specification: str, retry_count: int = 0) -> str:
         """Generate Terraform configuration based on AWS specification."""
         if retry_count >= 4:
-            return "", "Max retries reached - unable to generate valid Terraform configuration"
+            return ""
 
-        prompt = """You are a Terraform code generator. Generate ONLY the complete, valid Terraform code.
+        try:
+            # Get current infrastructure state
+            show_result = subprocess.run(
+                ["terraform", "show"],
+                capture_output=True,
+                text=True
+            )
+            current_state = show_result.stdout if show_result.returncode == 0 else "No existing infrastructure"
+
+            # Define the prompt for Terraform generation
+            prompt = """You are a Terraform code generator. Generate ONLY the complete, valid Terraform code.
+
+CRITICAL: Output ONLY valid Terraform code. Do not include any explanations, comments, or natural language text.
+Start directly with the terraform block. Do not include any introductory text or descriptions.
+
+CURRENT_INFRASTRUCTURE:
+""" + current_state + """
 
 SPECIFICATION:
 """ + aws_specification + """
+
+Analyze carefully the user requests and don't duplicate any resources you don't have to. 
+Remove any resources that the user does not want and add the resources that the user DOES want.
+Modify the current infrastructure to fulfill the user needs.
 
 REQUIREMENTS:
 1. Generate ONLY the complete Terraform file contents - no explanations or markdown
@@ -78,6 +98,8 @@ REQUIREMENTS:
 8. ALWAYS close all braces and brackets
 9. NEVER leave any blocks incomplete
 10. ALWAYS use the following AMI ami-05b10e08d247fb927
+11. NEVER include any natural language text or descriptions
+12. Start DIRECTLY with the terraform block
 
 CRITICAL VPC REQUIREMENTS:
 1. Create public and private subnets in different availability zones
@@ -120,113 +142,46 @@ COMMON ERRORS TO AVOID:
 4. Missing route table associations
 5. Improper availability zone configuration
 
-Generate the complete Terraform configuration:
+Generate ONLY the Terraform configuration, starting with the terraform block:
 """
 
-        # Generate the Terraform code
-        response = self.llm.complete(prompt)
-        print(f"\n=== Attempt {retry_count + 1} ===")
+            # Generate the Terraform code
+            response = self.llm.complete(prompt)
+            print(f"\n=== Attempt {retry_count + 1} ===")
 
-        # Get and validate the response text
-        tf_code = response.text.strip()
-        print(tf_code)
+            # Get and validate the response text
+            tf_code = response.text.strip()
+            
+            # Remove any natural language text before terraform block
+            if "terraform {" in tf_code:
+                tf_code = tf_code[tf_code.index("terraform {"):]
+            
+            print(tf_code)
 
-        # Additional validation for response completeness
-        if not tf_code or len(tf_code) < 50:  # Basic length check
-            print(f"\nResponse too short on attempt {retry_count + 1}, retrying...")
-            return self.generate_terraform(
-                aws_specification=aws_specification,
-                output_dir=output_dir,
-                retry_count=retry_count + 1
-            )
-
-        # Validate the generated code
-        if not self.validate_code(tf_code):
-            print(f"\nCode validation failed on attempt {retry_count + 1}, retrying...")
-            return self.generate_terraform(
-                aws_specification=aws_specification,
-                output_dir=output_dir,
-                retry_count=retry_count + 1
-            )
-
-        # Ensure output directory exists
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Write the generated code to main.tf with explicit file handling
-        output_file = os.path.join(output_dir, "main.tf")
-        try:
-            with open(output_file, "w") as f:
-                f.write(tf_code)
-                f.flush()  # Explicitly flush the file
-                os.fsync(f.fileno())  # Ensure it's written to disk
-        except Exception as e:
-            print(f"\nError writing file on attempt {retry_count + 1}: {str(e)}")
-            return self.generate_terraform(
-                aws_specification=aws_specification,
-                output_dir=output_dir,
-                retry_count=retry_count + 1
-            )
-
-        # Store current directory
-        original_dir = os.getcwd()
-        deployment_output = ""
-
-        try:
-            # Change to the Terraform directory
-            os.chdir(output_dir)
-
-            # Run terraform init and plan
-            print("\n=== Running Terraform Init & Plan ===")
-            init_result = subprocess.run(
-                ["terraform", "init"],
-                capture_output=True,
-                text=True
-            )
-            print(init_result.stdout)
-            if init_result.stderr:
-                print("Init Errors:", init_result.stderr)
-
-            plan_result = subprocess.run(
-                ["terraform", "plan"],
-                capture_output=True,
-                text=True
-            )
-            print(plan_result.stdout)
-            if plan_result.stderr:
-                print("Plan Errors:", plan_result.stderr)
-
-            # If plan failed, retry with a new generation
-            if plan_result.returncode != 0:
-                print(f"\nPlan failed on attempt {retry_count + 1}, retrying...")
-                os.chdir(original_dir)
-                return self.generate_terraform(
+            # Additional validation for response completeness
+            if not tf_code or len(tf_code) < 50:  # Basic length check
+                print(f"\nResponse too short on attempt {retry_count + 1}, retrying...")
+                return self.generate_code(
                     aws_specification=aws_specification,
-                    output_dir=output_dir,
                     retry_count=retry_count + 1
                 )
 
-            deployment_output = f"""
-Init Output:
-{init_result.stdout}
-{init_result.stderr if init_result.stderr else ''}
+            # Validate the generated code
+            if not self.validate_code(tf_code):
+                print(f"\nCode validation failed on attempt {retry_count + 1}, retrying...")
+                return self.generate_code(
+                    aws_specification=aws_specification,
+                    retry_count=retry_count + 1
+                )
 
-Plan Output:
-{plan_result.stdout}
-{plan_result.stderr if plan_result.stderr else ''}
-"""
+            return tf_code
+
         except Exception as e:
             print(f"\nError during attempt {retry_count + 1}: {str(e)}")
-            os.chdir(original_dir)
-            return self.generate_terraform(
+            return self.generate_code(
                 aws_specification=aws_specification,
-                output_dir=output_dir,
                 retry_count=retry_count + 1
             )
-        finally:
-            # Return to original directory
-            os.chdir(original_dir)
-
-        return tf_code, deployment_output
 
     def validate_terraform(self, terraform_dir: str) -> str:
         """
