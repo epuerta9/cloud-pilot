@@ -1,133 +1,190 @@
-"""FastAPI application for Cloud Pilot."""
+"""FastAPI implementation for Cloud Pilot."""
 
-from fastapi import FastAPI, HTTPException
+from typing import Dict, Optional, Any, Set
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
-from typing import List, Dict, Optional
-from langchain_core.messages import HumanMessage
+import asyncio
+from uuid import uuid4
 
-from src.graph import graph
+from src.graph import build_example_graph
+from src.state import CloudPilotState
+from src.constants import ACTION_GENERATE, ACTION_APPROVE_PLAN
+from langgraph.types import Command
 
-app = FastAPI(
-    title="Cloud Pilot API",
-    description="API for generating and managing Terraform infrastructure",
-    version="1.0.0"
-)
+app = FastAPI()
+active_connections: Set[WebSocket] = set()
 
-class ChatRequest(BaseModel):
-    """Request model for chat messages."""
-    message: str
+# Store for pending interactions
+pending_interactions: Dict[str, asyncio.Future] = {}
+# Store for flow states
+flow_states: Dict[str, CloudPilotState] = {}
 
-class ChatResponse(BaseModel):
-    """Response model for chat messages."""
-    messages: List[Dict[str, str]]
+class TaskRequest(BaseModel):
+    task: str
+
+class UserResponse(BaseModel):
+    approved: bool
+
+class FlowResponse(BaseModel):
+    flow_id: str
+    status: str
     result: Optional[str] = None
-    error: Optional[str] = None
+    question: Optional[str] = None
+    plan_output: Optional[str] = None
     terraform_code: Optional[str] = None
 
-class HumanInputRequest(BaseModel):
-    """Request model for human input."""
-    prompt: str
-    options: List[str]
+def handle_interrupt(interrupt_data: Dict[str, Any], state: CloudPilotState, flow_id: str) -> bool:
+    """Handle interrupts from the langgraph flow by storing state and creating a future."""
+    # Store the state
+    flow_states[flow_id] = state
+    # Create a future for the response
+    future = asyncio.Future()
+    pending_interactions[flow_id] = future
+    # Return a placeholder - the actual response will come later
+    return False
 
-class HumanInputResponse(BaseModel):
-    """Response model for human input."""
-    choice: str
-    next_action: str
+@app.websocket("/ws/ai-assist")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    active_connections.add(websocket)
 
-@app.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(request: ChatRequest):
-    """
-    Process a chat message and return the response.
-    
-    Args:
-        request: ChatRequest containing the user's message
-        
-    Returns:
-        ChatResponse containing the assistant's response and any generated code
-    """
     try:
-        # Create initial state with user message
-        message = HumanMessage(content=request.message)
-        
-        # Initialize response
-        response = ChatResponse(messages=[])
-        
-        # Stream responses from graph
-        for event in graph.stream({"messages": [message]}):
-            for value in event.values():
-                if "messages" in value and value["messages"]:
-                    # Add each message to the response
-                    response.messages.append({
-                        "role": "assistant",
-                        "content": value["messages"][-1].content
+        graph = build_example_graph()
+        while True:
+            # Wait for messages from the client
+            message = await websocket.receive_json()
+            print('websocket message: ', message)
+
+            # Initialize the graph and state
+            flow_id = str(uuid4())
+
+            if message.get("type") == "new_task":
+                # Start a new flow
+                flow_id = str(uuid4())
+                task = message.get("task")
+                print(f"starting new flow: flow_id={flow_id}, task={task}")
+                initial_state = {
+                    "task": task,
+                    "terraform_code": "",
+                    "terraform_file_path": "",
+                    "result": "",
+                    "error": "",
+                    "next_action": ACTION_APPROVE_PLAN,
+                }
+
+                try:
+
+                    async for event in graph.astream(
+                        initial_state,
+                        {"configurable": {
+                            "flow_id": flow_id,
+                            "thread_id": flow_id,
+                        }}
+                    ):
+                        print('graph event: ', event)
+                        print('is interrupt?', '__interrupt__' in event)
+
+                        if '__interrupt__' in event:
+                            # If this is a user interrupt, send the question to the client
+                            interrupt_data = event['__interrupt__'][0].value
+                            await websocket.send_json({
+                                "type": "confirmation",
+                                "flow_id": flow_id,
+                                "status": "waiting_for_input",
+                                "question": interrupt_data.get("question"),
+                                "plan_output": interrupt_data.get("plan_output"),
+                            })
+                            break
+
+                        else:
+                            # Send progress event to the client
+                            await websocket.send_json({
+                                "type": "progress",
+                                "flow_id": flow_id,
+                                "data": event
+                            })
+
+                except Exception as e:
+                    print(f"error: {e}")
+                    await websocket.send_json({
+                        "type": "error",
+                        "flow_id": flow_id,
+                        "error": str(e)
                     })
-                
-                # Add any terraform code or errors
-                if "terraform_code" in value:
-                    response.terraform_code = value["terraform_code"]
-                if "error" in value:
-                    response.error = value["error"]
-                if "result" in value:
-                    response.result = value["result"]
-        
-        return response
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+            elif message.get("type") == "user_response":
+                # Handle user response to an interrupt
+                flow_id = message.get("flow_id")
+                approved = message.get("approved")
 
-@app.post("/human-input", response_model=HumanInputResponse)
-async def human_input_endpoint(request: HumanInputRequest):
-    """
-    Get human input for a decision point.
-    
-    Args:
-        request: HumanInputRequest containing the prompt and options
-        
-    Returns:
-        HumanInputResponse containing the chosen option and next action
-    """
-    try:
-        # Display prompt and options
-        print(f"\n{request.prompt}")
-        for i, option in enumerate(request.options, 1):
-            print(f"{i}. {option}")
-        
-        # Get user choice
-        choice = input("\nEnter your choice (number): ")
-        choice_idx = int(choice) - 1
-        
-        if 0 <= choice_idx < len(request.options):
-            chosen_option = request.options[choice_idx]
-            
-            # Map choices to actions
-            action_map = {
-                "Apply": "execute",
-                "Regenerate": "generate",
-                "Cancel": "end"
-            }
-            
-            next_action = action_map.get(chosen_option, "end")
-            
-            return HumanInputResponse(
-                choice=chosen_option,
-                next_action=next_action
-            )
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid choice"
-            )
+                if flow_id not in pending_interactions:
+                    await websocket.send_json({
+                        "type": "error",
+                        "error": "No pending interaction found for this flow ID"
+                    })
+                    continue
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+                try:
+                    # Get the stored state and future
+                    state = flow_states[flow_id]
+                    future = pending_interactions[flow_id]
 
-# Add CORS middleware if needed
-from fastapi.middleware.cors import CORSMiddleware
+                    # Complete the future with the user's response
+                    future.set_result(approved)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Adjust in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+                    # Clean up
+                    del pending_interactions[flow_id]
+                    del flow_states[flow_id]
+
+                    # Continue the flow
+                    graph = build_example_graph()
+                    async for event in graph.astream(
+                        state,
+                        {"configurable": {
+                            "flow_id": flow_id,
+                            "interrupt": lambda data, state: handle_interrupt(data, state, flow_id),
+                            "thread_id": flow_id,
+                        }}
+                    ):
+                        if flow_id in pending_interactions:
+                            # We hit another interrupt
+                            interrupt_data = event.get("interrupt_data", {})
+                            await websocket.send_json({
+                                "type": "interrupt",
+                                "flow_id": flow_id,
+                                "status": "waiting_for_input",
+                                "question": interrupt_data.get("question"),
+                                "plan_output": interrupt_data.get("plan_output"),
+                                "terraform_code": interrupt_data.get("terraform_code")
+                            })
+                            break
+                        else:
+                            # Send progress event to the client
+                            await websocket.send_json({
+                                "type": "progress",
+                                "flow_id": flow_id,
+                                "data": event
+                            })
+
+                except Exception as e:
+                    print(f"error: {e}")
+                    await websocket.send_json({
+                        "type": "error",
+                        "flow_id": flow_id,
+                        "error": str(e)
+                    })
+
+            elif message.get("type") == "confirmation":
+                flow_id = message.get("flow_id")
+                print(f"confirmation: flow_id={flow_id}")
+                approved = message.get("approved")
+
+                for chunk in graph.stream(Command(resume={"approved": approved.lower() != "false"}), config={"configurable": {"thread_id": flow_id}}):
+                    await websocket.send_json({
+                        "type": "progress",
+                        "flow_id": flow_id,
+                        "data": chunk
+                    })
+
+    except WebSocketDisconnect:
+        active_connections.remove(websocket)

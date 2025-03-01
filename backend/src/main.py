@@ -7,9 +7,9 @@ from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
-from langchain_core.messages import HumanMessage, AIMessage
-from langgraph.prebuilt.tool_executor import Command
-
+from langchain_core.messages import HumanMessage
+from langgraph.types import Command
+from langgraph.checkpoint.memory import MemorySaver
 from src.nodes.generate_terraform import generate_terraform
 from src.nodes.terraform_plan import terraform_plan
 from src.nodes.plan_approval import plan_approval, handle_plan_feedback
@@ -96,7 +96,8 @@ def build_example_graph() -> StateGraph:
     # Set the entry point
     graph.set_entry_point(NODE_GENERATE_TERRAFORM)
 
-    return graph.compile()
+    checkpointer = MemorySaver()
+    return graph.compile(checkpointer=checkpointer)
 
 
 # Build graph at module level for streaming
