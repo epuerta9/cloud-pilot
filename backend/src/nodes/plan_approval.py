@@ -1,17 +1,28 @@
 """Node for handling Terraform plan approval."""
 
-import os
-from typing import Dict, Literal
-from langgraph.types import Command, interrupt
-
+from typing import Literal
+from langgraph.types import interrupt, Command
 from src.state import CloudPilotState
-from src.constants import (
-    ACTION_USER_INTERACTION, ACTION_EXECUTE, ACTION_GENERATE,
-    NODE_EXECUTE_TERRAFORM, NODE_GENERATE_TERRAFORM, NODE_USER_INTERACTION
-)
+from src.constants import ACTION_EXECUTE, ACTION_GENERATE, ACTION_USER_INTERACTION
 
+def plan_approval(state: CloudPilotState) -> Command[Literal["execute_terraform", "generate_terraform"]]:
+    is_approved = interrupt(
+        {
+            "question": "Is this correct?",
+            # Surface the output that should be
+            # reviewed and approved by the human.
+            "llm_output": state["result"]
+        }
+    )
+    print(is_approved)
+    if is_approved:
+        print("yes")
+        return Command(goto="execute_terraform")
+    else:
+        print("no")
+        return Command(goto="generate_terraform")
 
-def plan_approval(state: CloudPilotState) -> CloudPilotState:
+def plan_approval2(state: CloudPilotState) -> CloudPilotState:
     """
     Handle the approval or rejection of a Terraform plan.
 
@@ -41,11 +52,13 @@ def plan_approval(state: CloudPilotState) -> CloudPilotState:
             new_state["next_action"] = ACTION_USER_INTERACTION
             return new_state
 
-        # Interrupt the graph to get user feedback
+        # Return state with interrupt for user feedback
         return interrupt(
-            "plan_approval",
-            "What would you like to do?\n1. Apply the plan\n2. Modify the code\n3. Cancel",
-            new_state
+            {
+                "question": "Is this correct?",
+                "plan_output": state["result"],
+                "terraform_code": state["terraform_code"]
+            }
         )
 
     except Exception as e:
@@ -54,29 +67,25 @@ def plan_approval(state: CloudPilotState) -> CloudPilotState:
         return new_state
 
 
-def handle_plan_feedback(state: CloudPilotState) -> Literal["execute", "generate", "user_interaction"]:
+def handle_plan_feedback(state: CloudPilotState) -> Literal[ACTION_EXECUTE, ACTION_GENERATE, ACTION_USER_INTERACTION]:
     """
-    Handle the user's feedback on the plan and determine the next node.
-
+    Handle the user's feedback on the Terraform plan.
+    
     Args:
-        state: The current state of the application
-
+        state: The current state containing the user's feedback
+        
     Returns:
-        The name of the next node to execute
+        The next action to take based on the feedback
     """
-    # Get the user's choice from the feedback
-    choice = state.get("user_input", "")
-
-    if choice == "1":
-        # Proceed with terraform apply
-        state["next_action"] = ACTION_EXECUTE
-        return NODE_EXECUTE_TERRAFORM
-    elif choice == "2":
-        # Return to generate terraform for modifications
-        state["next_action"] = ACTION_GENERATE
-        state["user_input"] = "modify"  # Signal that we're modifying existing code
-        return NODE_GENERATE_TERRAFORM
-    else:
-        # Return to main menu
-        state["next_action"] = ACTION_USER_INTERACTION
-        return NODE_USER_INTERACTION
+    try:
+        # Get user's decision
+        is_approved = input("\nDo you want to apply this plan? (yes/no): ").lower().startswith('y')
+        
+        if is_approved:
+            return ACTION_EXECUTE
+        else:
+            return ACTION_GENERATE
+            
+    except Exception as e:
+        print(f"Error handling feedback: {str(e)}")
+        return ACTION_USER_INTERACTION

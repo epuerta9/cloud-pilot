@@ -54,13 +54,14 @@ def execute_terraform(state: CloudPilotState) -> CloudPilotState:
             )
 
             # Run Terraform apply
+            print("Running Terraform apply")
             apply_result = subprocess.run(
-                ["terraform", "apply", "-auto-approve", "-no-color"],
+                ["terraform", "apply", "--auto-approve",],
                 capture_output=True,
                 text=True,
                 check=True
             )
-
+            print("Terraform apply completed")
             # Update the state with the execution results
             new_state["result"] = apply_result.stdout
             new_state["error"] = ""
