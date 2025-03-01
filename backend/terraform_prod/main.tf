@@ -1,60 +1,47 @@
 provider "aws" {
-region = "us-west-2"
+  region = "us-east-1"
 }
 
-resource "aws_s3_bucket" "cloudpilot_website_bucket" {
-bucket = "cloudpilot-website-bucket"
+resource "aws_instance" "cloudpilot_webserver" {
+  ami           = "ami-05b10e08d247fb927"
+  instance_type = "t3.micro"
 
-server_side_encryption_configuration {
-rule {
-apply_server_side_encryption_by_default {
-sse_algorithm = "AES256"
-}
-}
+  tags = {
+    Name = "cloudpilot_webserver"
+  }
 }
 
-tags = {
-Name = "CloudPilot Website Bucket"
-}
-}
+resource "aws_s3_bucket" "cloudpilot_static_files" {
+  bucket = "cloudpilot-static-files"
 
-resource "aws_s3_bucket_public_access_block" "cloudpilot_website_bucket_public_access_block" {
-bucket = aws_s3_bucket.cloudpilot_website_bucket.id
-
-block_public_acls       = true
-block_public_policy     = true
-ignore_public_acls      = true
-restrict_public_buckets = true
+  tags = {
+    Name = "cloudpilot_static_files"
+  }
 }
 
-resource "aws_iam_role" "cloudpilot_ec2_role" {
-name = "cloudpilot_ec2_role"
+resource "aws_s3_bucket_public_access_block" "cloudpilot_static_files" {
+  bucket = aws_s3_bucket.cloudpilot_static_files.id
 
-assume_role_policy = jsonencode({
-Version = "2012-10-17"
-Statement = [
-{
-Action = "sts:AssumeRole"
-Effect = "Allow"
-Principal = {
-Service = "ec2.amazonaws.com"
-}
-}
-]
-})
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
 }
 
-resource "aws_iam_role_policy_attachment" "cloudpilot_s3_access" {
-policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-role       = aws_iam_role.cloudpilot_ec2_role.name
+resource "aws_s3_bucket_ownership_controls" "cloudpilot_static_files" {
+  bucket = aws_s3_bucket.cloudpilot_static_files.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
 }
 
-resource "aws_security_group" "cloudpilot_web_sg" {
-name        = "cloudpilot_web_sg"
-description = "Security group for web server"
+resource "aws_s3_bucket_acl" "cloudpilot_static_files" {
+  depends_on = [
+    aws_s3_bucket_public_access_block.cloudpilot_static_files,
+    aws_s3_bucket_ownership_controls.cloudpilot_static_files,
+  ]
 
-ingress {
-from_port   = 80
-to_port     = 80
-protocol    = "tcp"
-cidr_blocks = ["0.
+  bucket = aws_s3_bucket.cloudpilot_static_files.id
+  acl    = "public-read"
+}
