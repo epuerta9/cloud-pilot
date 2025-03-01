@@ -1,0 +1,965 @@
+{
+ "Resources": {
+  "cloudpilotvpc0A29A0D0": {
+   "Type": "AWS::EC2::VPC",
+   "Properties": {
+    "CidrBlock": "10.0.0.0/16",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true,
+    "InstanceTenancy": "default",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/Resource"
+   }
+  },
+  "cloudpilotvpcPublicSubnet1Subnet4D931D4A": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.0.0/18",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/Subnet"
+   }
+  },
+  "cloudpilotvpcPublicSubnet1RouteTable02B19FA6": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/RouteTable"
+   }
+  },
+  "cloudpilotvpcPublicSubnet1RouteTableAssociationBC3B4C2B": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "cloudpilotvpcPublicSubnet1RouteTable02B19FA6"
+    },
+    "SubnetId": {
+     "Ref": "cloudpilotvpcPublicSubnet1Subnet4D931D4A"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/RouteTableAssociation"
+   }
+  },
+  "cloudpilotvpcPublicSubnet1DefaultRoute8EDB73C7": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "cloudpilotvpcIGW67F6C3B6"
+    },
+    "RouteTableId": {
+     "Ref": "cloudpilotvpcPublicSubnet1RouteTable02B19FA6"
+    }
+   },
+   "DependsOn": [
+    "cloudpilotvpcVPCGW2D1C3026"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/DefaultRoute"
+   }
+  },
+  "cloudpilotvpcPublicSubnet1EIP9860E79D": {
+   "Type": "AWS::EC2::EIP",
+   "Properties": {
+    "Domain": "vpc",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/EIP"
+   }
+  },
+  "cloudpilotvpcPublicSubnet1NATGatewayA9DB9740": {
+   "Type": "AWS::EC2::NatGateway",
+   "Properties": {
+    "AllocationId": {
+     "Fn::GetAtt": [
+      "cloudpilotvpcPublicSubnet1EIP9860E79D",
+      "AllocationId"
+     ]
+    },
+    "SubnetId": {
+     "Ref": "cloudpilotvpcPublicSubnet1Subnet4D931D4A"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1"
+     }
+    ]
+   },
+   "DependsOn": [
+    "cloudpilotvpcPublicSubnet1DefaultRoute8EDB73C7",
+    "cloudpilotvpcPublicSubnet1RouteTableAssociationBC3B4C2B"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/NATGateway"
+   }
+  },
+  "cloudpilotvpcPublicSubnet2SubnetD1F6C1D3": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.64.0/18",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/Subnet"
+   }
+  },
+  "cloudpilotvpcPublicSubnet2RouteTableC1FF2B8B": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/RouteTable"
+   }
+  },
+  "cloudpilotvpcPublicSubnet2RouteTableAssociationFD5B2DB4": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "cloudpilotvpcPublicSubnet2RouteTableC1FF2B8B"
+    },
+    "SubnetId": {
+     "Ref": "cloudpilotvpcPublicSubnet2SubnetD1F6C1D3"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/RouteTableAssociation"
+   }
+  },
+  "cloudpilotvpcPublicSubnet2DefaultRoute9E4572E0": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "cloudpilotvpcIGW67F6C3B6"
+    },
+    "RouteTableId": {
+     "Ref": "cloudpilotvpcPublicSubnet2RouteTableC1FF2B8B"
+    }
+   },
+   "DependsOn": [
+    "cloudpilotvpcVPCGW2D1C3026"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/DefaultRoute"
+   }
+  },
+  "cloudpilotvpcPublicSubnet2EIP98862322": {
+   "Type": "AWS::EC2::EIP",
+   "Properties": {
+    "Domain": "vpc",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/EIP"
+   }
+  },
+  "cloudpilotvpcPublicSubnet2NATGateway4F1A5353": {
+   "Type": "AWS::EC2::NatGateway",
+   "Properties": {
+    "AllocationId": {
+     "Fn::GetAtt": [
+      "cloudpilotvpcPublicSubnet2EIP98862322",
+      "AllocationId"
+     ]
+    },
+    "SubnetId": {
+     "Ref": "cloudpilotvpcPublicSubnet2SubnetD1F6C1D3"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2"
+     }
+    ]
+   },
+   "DependsOn": [
+    "cloudpilotvpcPublicSubnet2DefaultRoute9E4572E0",
+    "cloudpilotvpcPublicSubnet2RouteTableAssociationFD5B2DB4"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/NATGateway"
+   }
+  },
+  "cloudpilotvpcPrivateSubnet1SubnetAA28A1E0": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.128.0/18",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Private"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1/Subnet"
+   }
+  },
+  "cloudpilotvpcPrivateSubnet1RouteTableAFABB552": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1/RouteTable"
+   }
+  },
+  "cloudpilotvpcPrivateSubnet1RouteTableAssociation33EDF563": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "cloudpilotvpcPrivateSubnet1RouteTableAFABB552"
+    },
+    "SubnetId": {
+     "Ref": "cloudpilotvpcPrivateSubnet1SubnetAA28A1E0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1/RouteTableAssociation"
+   }
+  },
+  "cloudpilotvpcPrivateSubnet1DefaultRoute6CA9E3C6": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "cloudpilotvpcPublicSubnet1NATGatewayA9DB9740"
+    },
+    "RouteTableId": {
+     "Ref": "cloudpilotvpcPrivateSubnet1RouteTableAFABB552"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1/DefaultRoute"
+   }
+  },
+  "cloudpilotvpcPrivateSubnet2Subnet394D779B": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.192.0/18",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "Private"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2/Subnet"
+   }
+  },
+  "cloudpilotvpcPrivateSubnet2RouteTableC140FCA0": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2/RouteTable"
+   }
+  },
+  "cloudpilotvpcPrivateSubnet2RouteTableAssociationD535E7AD": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "cloudpilotvpcPrivateSubnet2RouteTableC140FCA0"
+    },
+    "SubnetId": {
+     "Ref": "cloudpilotvpcPrivateSubnet2Subnet394D779B"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2/RouteTableAssociation"
+   }
+  },
+  "cloudpilotvpcPrivateSubnet2DefaultRoute34EE9732": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "cloudpilotvpcPublicSubnet2NATGateway4F1A5353"
+    },
+    "RouteTableId": {
+     "Ref": "cloudpilotvpcPrivateSubnet2RouteTableC140FCA0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2/DefaultRoute"
+   }
+  },
+  "cloudpilotvpcIGW67F6C3B6": {
+   "Type": "AWS::EC2::InternetGateway",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_vpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/IGW"
+   }
+  },
+  "cloudpilotvpcVPCGW2D1C3026": {
+   "Type": "AWS::EC2::VPCGatewayAttachment",
+   "Properties": {
+    "InternetGatewayId": {
+     "Ref": "cloudpilotvpcIGW67F6C3B6"
+    },
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_vpc/VPCGW"
+   }
+  },
+  "cloudpilotsgD8BA7BE5": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Allow HTTP inbound traffic",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow HTTP traffic",
+      "FromPort": 80,
+      "IpProtocol": "tcp",
+      "ToPort": 80
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_sg/Resource"
+   }
+  },
+  "cloudpilotinstanceInstanceRoleD74F6C3B": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ec2.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_instance"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_instance/InstanceRole/Resource"
+   }
+  },
+  "cloudpilotinstanceInstanceProfile1BDAB1D1": {
+   "Type": "AWS::IAM::InstanceProfile",
+   "Properties": {
+    "Roles": [
+     {
+      "Ref": "cloudpilotinstanceInstanceRoleD74F6C3B"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_instance/InstanceProfile"
+   }
+  },
+  "cloudpilotinstance709973B1": {
+   "Type": "AWS::EC2::Instance",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "IamInstanceProfile": {
+     "Ref": "cloudpilotinstanceInstanceProfile1BDAB1D1"
+    },
+    "ImageId": {
+     "Fn::FindInMap": [
+      "cloudpilotinstanceAmiMap60104CEF",
+      {
+       "Ref": "AWS::Region"
+      },
+      "ami"
+     ]
+    },
+    "InstanceType": "t3.micro",
+    "SecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "cloudpilotsgD8BA7BE5",
+       "GroupId"
+      ]
+     }
+    ],
+    "SubnetId": {
+     "Ref": "cloudpilotvpcPrivateSubnet1SubnetAA28A1E0"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CloudPilotTestStack/cloudpilot_instance"
+     }
+    ],
+    "UserData": {
+     "Fn::Base64": "#!/bin/bash"
+    }
+   },
+   "DependsOn": [
+    "cloudpilotinstanceInstanceRoleD74F6C3B"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_instance/Resource"
+   }
+  },
+  "cloudpilotalb16A33453": {
+   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+   "Properties": {
+    "LoadBalancerAttributes": [
+     {
+      "Key": "deletion_protection.enabled",
+      "Value": "false"
+     }
+    ],
+    "Scheme": "internet-facing",
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "cloudpilotsgD8BA7BE5",
+       "GroupId"
+      ]
+     }
+    ],
+    "Subnets": [
+     {
+      "Ref": "cloudpilotvpcPublicSubnet1Subnet4D931D4A"
+     },
+     {
+      "Ref": "cloudpilotvpcPublicSubnet2SubnetD1F6C1D3"
+     }
+    ],
+    "Type": "application"
+   },
+   "DependsOn": [
+    "cloudpilotvpcPublicSubnet1DefaultRoute8EDB73C7",
+    "cloudpilotvpcPublicSubnet1RouteTableAssociationBC3B4C2B",
+    "cloudpilotvpcPublicSubnet2DefaultRoute9E4572E0",
+    "cloudpilotvpcPublicSubnet2RouteTableAssociationFD5B2DB4"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_alb/Resource"
+   }
+  },
+  "cloudpilottg380EBB35": {
+   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+   "Properties": {
+    "Port": 80,
+    "Protocol": "HTTP",
+    "TargetGroupAttributes": [
+     {
+      "Key": "stickiness.enabled",
+      "Value": "false"
+     }
+    ],
+    "TargetType": "instance",
+    "Targets": [
+     {
+      "Id": {
+       "Ref": "cloudpilotinstance709973B1"
+      }
+     }
+    ],
+    "VpcId": {
+     "Ref": "cloudpilotvpc0A29A0D0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_tg/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1VPTWvCQBD9Ld7XLbEXr1aKBGwJiXgtk3WMUzezYXdWkZD/XmJqoqf3MY/Hm4VOlolOZnANc3M4zy2Vui0EzFnBNfy0aBa63TdGrY+8z9Yqi6UlU8SSUXpvYrmLgjsoLU7+5K1CcIZAyPEY7slnmvXwDbIBwSvcVObpAoJTccqCnnEMDEv+1UoEzKlGFlWgiZ7ktvEuNvcNL0bKQYANDpUD7xRBrdvcDaMf+Dhn3h3JYqfQQhAy1sGhBAtsiKvLQrerprFk7l9tHRw+7jf0fceLfsrtwFco48Yn2XUqx+CiHzZ+QdMQV53KbnJy/Pauk0QvZ7+BaO4jC9Wo8wH/ALWeKlDFAQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CloudPilotTestStack/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Mappings": {
+  "cloudpilotinstanceAmiMap60104CEF": {
+   "us-east-1": {
+    "ami": "ami-0c7217cdde317cfec"
+   }
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-3"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-4"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "il-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Equals": [
+      {
+       "Ref": "AWS::Region"
+      },
+      "us-west-2"
+     ]
+    }
+   ]
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

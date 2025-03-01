@@ -1,4 +1,4 @@
-"""Node for generating Terraform code."""
+"""Node for generating infrastructure code."""
 
 import os
 from typing import Dict
@@ -9,18 +9,19 @@ from llama_index.core import Settings
 # Import the CloudPilotState type and agents
 from src.state import CloudPilotState
 from src.agents.interpreter_agent import InterpreterAgent
-from src.agents.tf_generator_agent import TerraformGeneratorAgent
+from src.agents.cdk_generator_agent import CDKGeneratorAgent
 
 
 def generate_terraform(state: CloudPilotState) -> CloudPilotState:
     """
-    Generate or modify Terraform code based on the task description.
+    Generate infrastructure code based on the task description.
+    Uses CDK for infrastructure as code.
     
     Args:
         state: The current state of the graph
         
     Returns:
-        Updated state with generated Terraform code
+        Updated state with generated infrastructure code
     """
     # Create a copy of the state to modify
     new_state = state.copy()
@@ -28,20 +29,33 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
     try:
         # Initialize agents
         interpreter = InterpreterAgent()
-        tf_generator = TerraformGeneratorAgent()
+        cdk_generator = CDKGeneratorAgent()
         
         # First, interpret the user's request into AWS services
         aws_specification = interpreter.interpret_request(state["task"])
         
-        # Initialize the Terraform workspace
-        tf_generator.initialize_workspace()
+        # Generate and validate CDK code
+        cdk_code, cdk_validation = cdk_generator.generate_cdk(aws_specification)
         
-        # Store the interpreted specification in the result
-        new_state["result"] = f"Interpreted Request: {aws_specification}"
-        new_state["error"] = ""
+        # Update the state with the results
+        new_state["cdk_code"] = cdk_code
+        new_state["cdk_file_path"] = os.path.join("cdk_prod", "stack.py")
         
-        # We'll continue with the rest of the tf_generator functionality
-        # in the next steps...
+        # Store results
+        new_state["result"] = f"""
+        Interpreted Request: {aws_specification}
+        
+        CDK Validation: {cdk_validation}
+        
+        Generated file:
+        - CDK: {new_state["cdk_file_path"]}
+        """
+        
+        # Set error if validation failed
+        if "valid" not in cdk_validation.lower():
+            new_state["error"] = "Validation failed. Check result for details."
+        else:
+            new_state["error"] = ""
         
     except Exception as e:
         new_state["error"] = f"Error in generate_terraform: {str(e)}"

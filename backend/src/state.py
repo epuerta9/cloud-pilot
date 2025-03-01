@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, TypedDict
+from typing import Any, Dict, Optional, TypedDict, List
 from dataclasses import dataclass, field
 from typing import Annotated
 from langgraph.graph.message import add_messages
@@ -12,10 +12,10 @@ class CloudPilotState(TypedDict):
 
     # The current task description
     task: str
-    # The current terraform code
-    terraform_code: str
-    # The path to the terraform file
-    terraform_file_path: str
+    # The current CDK code
+    cdk_code: str
+    # The path to the CDK file
+    cdk_file_path: str
     # The result of the last operation
     result: str
     # Any error messages

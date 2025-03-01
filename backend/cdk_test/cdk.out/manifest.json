@@ -1,0 +1,251 @@
+{
+  "version": "39.0.0",
+  "artifacts": {
+    "CloudPilotTestStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "CloudPilotTestStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "CloudPilotTestStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/unknown-region",
+      "properties": {
+        "templateFile": "CloudPilotTestStack.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c012911ebd77f955a1995a27f07e72f209a270662858645e592f3935ec49f435.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "CloudPilotTestStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-${AWS::Region}",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "CloudPilotTestStack.assets"
+      ],
+      "metadata": {
+        "/CloudPilotTestStack/cloudpilot_vpc/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpc0A29A0D0"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/Subnet": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet1Subnet4D931D4A"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/RouteTable": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet1RouteTable02B19FA6"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/RouteTableAssociation": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet1RouteTableAssociationBC3B4C2B"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/DefaultRoute": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet1DefaultRoute8EDB73C7"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/EIP": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet1EIP9860E79D"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet1/NATGateway": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet1NATGatewayA9DB9740"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/Subnet": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet2SubnetD1F6C1D3"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/RouteTable": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet2RouteTableC1FF2B8B"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/RouteTableAssociation": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet2RouteTableAssociationFD5B2DB4"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/DefaultRoute": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet2DefaultRoute9E4572E0"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/EIP": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet2EIP98862322"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PublicSubnet2/NATGateway": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPublicSubnet2NATGateway4F1A5353"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1/Subnet": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPrivateSubnet1SubnetAA28A1E0"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1/RouteTable": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPrivateSubnet1RouteTableAFABB552"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1/RouteTableAssociation": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPrivateSubnet1RouteTableAssociation33EDF563"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet1/DefaultRoute": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPrivateSubnet1DefaultRoute6CA9E3C6"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2/Subnet": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPrivateSubnet2Subnet394D779B"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2/RouteTable": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPrivateSubnet2RouteTableC140FCA0"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2/RouteTableAssociation": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPrivateSubnet2RouteTableAssociationD535E7AD"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/PrivateSubnet2/DefaultRoute": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcPrivateSubnet2DefaultRoute34EE9732"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/IGW": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcIGW67F6C3B6"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_vpc/VPCGW": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotvpcVPCGW2D1C3026"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_sg/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotsgD8BA7BE5"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_instance/InstanceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotinstanceInstanceRoleD74F6C3B"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_instance/InstanceProfile": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotinstanceInstanceProfile1BDAB1D1"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_instance/AmiMap": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotinstanceAmiMap60104CEF"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_instance/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotinstance709973B1"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_alb/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilotalb16A33453"
+          }
+        ],
+        "/CloudPilotTestStack/cloudpilot_tg/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "cloudpilottg380EBB35"
+          }
+        ],
+        "/CloudPilotTestStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/CloudPilotTestStack/CDKMetadata/Condition": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadataAvailable"
+          }
+        ],
+        "/CloudPilotTestStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/CloudPilotTestStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "CloudPilotTestStack"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}
