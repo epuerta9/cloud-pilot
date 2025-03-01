@@ -7,3 +7,4 @@ __pycache__/
 venv/
 backend/src/cloud_pilot.egg-info/
 backend/build
+.terraform/
