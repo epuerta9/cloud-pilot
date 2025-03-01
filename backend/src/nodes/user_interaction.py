@@ -6,7 +6,7 @@ from typing import Dict
 from llama_index.llms.openai import OpenAI
 
 # Import the CloudPilotState type
-from src.main import CloudPilotState
+from src.state import CloudPilotState
 
 
 def user_interaction(state: CloudPilotState) -> CloudPilotState:
