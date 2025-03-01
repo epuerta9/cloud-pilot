@@ -1,14 +1,13 @@
-from typing import TypedDict, Annotated
+from typing import TypedDict, List
 from typing_extensions import NotRequired
+from langgraph.graph.message import add_messages
 
-def add_messages(messages: list) -> list:
-    """Add messages to the state."""
-    return messages
 
 class CloudPilotState(TypedDict):
     """State for the Cloud Pilot graph."""
 
-    messages: Annotated[list, add_messages]
+    # Messages list with add_messages reducer
+    messages: List[str]
 
     # The current task description
     task: str
