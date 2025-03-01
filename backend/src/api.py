@@ -179,7 +179,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 print(f"confirmation: flow_id={flow_id}")
                 approved = message.get("approved")
 
-                for chunk in graph.stream(Command(resume={"approved": approved.lower() != "false"}), config={"configurable": {"thread_id": flow_id}}):
+                for chunk in graph.stream(Command(resume={"approved": approved}), config={"configurable": {"thread_id": flow_id}}):
                     await websocket.send_json({
                         "type": "progress",
                         "flow_id": flow_id,

@@ -28,7 +28,7 @@ const Chat: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const { isConnected, sendTask, lastResult, confirmationData, sendConfirmation } = useWebSocket();
 
   // Auto-scroll to bottom when messages change
@@ -59,7 +59,7 @@ const Chat: React.FC = () => {
       const confirmationMessage: Message = {
         id: Date.now().toString(),
         role: 'system',
-        content: `Confirmation required: ${confirmationData.message || 'Do you want to proceed?'}`,
+        content: `Confirmation required: ${confirmationData.question || 'Do you want to proceed?'}`,
         timestamp: new Date(),
         requiresConfirmation: true,
         confirmationData: confirmationData,
@@ -74,14 +74,14 @@ const Chat: React.FC = () => {
     if (textarea) {
       // Reset height to get accurate scrollHeight
       textarea.style.height = '0px';
-      
+
       // Calculate new height with max limit
       const maxHeight = 140;
       const height = Math.min(textarea.scrollHeight, maxHeight);
-      
+
       // Set textarea height
       textarea.style.height = height + 'px';
-      
+
       // Update wrapper height
       const wrapper = textarea.closest('.input-wrapper') as HTMLElement;
       if (wrapper) {
@@ -105,19 +105,19 @@ const Chat: React.FC = () => {
       alert('Not connected to server. Please try again in a moment.');
       return;
     }
-    
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
       content: input.trim(),
       timestamp: new Date(),
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsThinking(true);
     setShowSuggestions(false);
-    
+
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = '24px';
@@ -138,7 +138,7 @@ const Chat: React.FC = () => {
   const handleConfirmation = (message: Message, confirmed: boolean) => {
     if (message.confirmationData) {
       sendConfirmation(confirmed, message.confirmationData);
-      
+
       // Add response to messages
       const responseMessage: Message = {
         id: Date.now().toString(),
@@ -154,13 +154,13 @@ const Chat: React.FC = () => {
   // Toggle voice recording
   const toggleRecording = () => {
     setIsRecording(!isRecording);
-    
+
     // If we're stopping recording, we'll let the VoiceInput component handle the transcript
     if (isRecording) {
       textareaRef.current?.focus();
     }
   };
-  
+
   // Handle voice transcript from VoiceInput
   const handleVoiceTranscript = (transcript: string) => {
     if (transcript.trim()) {
@@ -201,17 +201,17 @@ const Chat: React.FC = () => {
             <Cpu size={24} className="suggestion-icon" />
             Launch Web App Server
           </button>
-          
+
           <button className="suggestion-button" onClick={() => handleSuggestion("Set up an RDS database with proper security groups")}>
             <Database size={24} className="suggestion-icon" />
             Configure Database
           </button>
-          
+
           <button className="suggestion-button" onClick={() => handleSuggestion("Create a production-ready VPC with public and private subnets")}>
             <Cloud size={24} className="suggestion-icon" />
             Setup VPC Architecture
           </button>
-          
+
           <button className="suggestion-button" onClick={() => handleSuggestion("Configure auto-scaling for my EC2 instances with CloudWatch alarms")}>
             <ChartLineUp size={24} className="suggestion-icon" />
             Setup Auto-scaling
@@ -225,17 +225,17 @@ const Chat: React.FC = () => {
             <CurrencyDollar size={24} className="suggestion-icon" />
             Optimize AWS Costs
           </button>
-          
+
           <button className="suggestion-button" onClick={() => handleSuggestion("Help me secure my AWS resources with best practices")}>
             <Shield size={24} className="suggestion-icon" />
             Security Best Practices
           </button>
-          
+
           <button className="suggestion-button" onClick={() => handleSuggestion("Set up CloudWatch monitoring and alerts for my services")}>
             <ChartLineUp size={24} className="suggestion-icon" />
             Configure Monitoring
           </button>
-          
+
           <button className="suggestion-button" onClick={() => handleSuggestion("Create a CI/CD pipeline with AWS CodePipeline")}>
             <Rocket size={24} className="suggestion-icon" />
             Setup CI/CD Pipeline
@@ -266,21 +266,21 @@ const Chat: React.FC = () => {
             {activeTab === 'chat' ? 'New Chat' : 'AWS Setup'}
           </h1>
           {messages.length > 0 && (
-            <button 
-              className="clear-chat-button" 
-              onClick={clearChat} 
+            <button
+              className="clear-chat-button"
+              onClick={clearChat}
               aria-label="Clear chat"
             >
               <ArrowPathIcon className="w-5 h-5" />
             </button>
           )}
         </div>
-        
+
         <div className="main-content">
           <div className="chat-messages">
             <AnimatePresence>
               {messages.length === 0 && showSuggestions ? (
-                <motion.div 
+                <motion.div
                   className="welcome-container"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -292,11 +292,11 @@ const Chat: React.FC = () => {
                     </h2>
                   </div>
                   <p className="welcome-text">
-                    {activeTab === 'chat' 
+                    {activeTab === 'chat'
                       ? 'Your next-generation AI assistant. Ask me anything about coding, technology, or just chat!'
                       : 'I can help you set up and manage your AWS infrastructure. Ask me about services, costs, or configurations!'}
                   </p>
-                  
+
                   <div className="suggestion-grid">
                     {getSuggestions()}
                   </div>
@@ -318,7 +318,7 @@ const Chat: React.FC = () => {
                       index={index}
                       isStreaming={isStreaming && index === messages.length - 1}
                       streamingContent={streamingContent}
-                      onConfirm={message.requiresConfirmation ? 
+                      onConfirm={message.requiresConfirmation ?
                         () => handleConfirmation(message, true) : undefined}
                       onCancel={message.requiresConfirmation ?
                         () => handleConfirmation(message, false) : undefined}
@@ -344,43 +344,45 @@ const Chat: React.FC = () => {
             </AnimatePresence>
           </div>
         </div>
-        
-        <div className="chat-input-container">
-          <div className="input-wrapper">
-            <textarea
-              ref={textareaRef}
-              className="chat-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Message Cloud Pilot..."
-              disabled={isThinking || isStreaming}
-              rows={1}
-              style={{ height: 'auto' }}
-            />
-            
-            <div className="input-buttons">
-              <VoiceInput
-                isRecording={isRecording}
-                toggleRecording={toggleRecording}
-                onTranscript={handleVoiceTranscript}
+
+        {/* Only show chat input if there's no pending confirmation */}
+        {!messages.some(m => m.requiresConfirmation && !m.isConfirmationResponse) && (
+          <div className="chat-input-container">
+            <div className="input-wrapper">
+              <textarea
+                ref={textareaRef}
+                className="chat-input"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Message Cloud Pilot..."
                 disabled={isThinking || isStreaming}
+                rows={1}
+                style={{ height: 'auto' }}
               />
-              
-              <button
-                className="send-button"
-                onClick={handleSendMessage}
-                disabled={(!input.trim() && !isRecording) || isThinking || isStreaming}
-                aria-label="Send message"
-              >
-                <PaperAirplaneIcon className="w-5 h-5" />
-              </button>
+
+              <div className="input-buttons">
+                <VoiceInput
+                  isRecording={isRecording}
+                  toggleRecording={toggleRecording}
+                  onTranscript={handleVoiceTranscript}
+                  disabled={isThinking || isStreaming}
+                />
+
+                <button
+                  className="send-button"
+                  onClick={handleSendMessage}
+                  disabled={(!input.trim() && !isRecording) || isThinking || isStreaming}
+                  aria-label="Send message"
+                >
+                  <PaperAirplaneIcon className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
- 
-        </div>
+        )}
       </div>
-      
+
       <div className="document-container">
         <div className="document-header">
           <div className="document-header-content">
@@ -397,22 +399,22 @@ const Chat: React.FC = () => {
             )}
           </div>
           <div className="header-actions">
-            <button 
+            <button
               className={`tab-button ${activeTab === 'chat' ? 'active' : ''}`}
               onClick={() => setActiveTab('chat')}
             >
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
               Chat
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'aws' ? 'active' : ''}`}
               onClick={() => setActiveTab('aws')}
             >
               <ChartLineUp size={20} />
               AWS Dashboard
             </button>
-            <button 
-              className="settings-button" 
+            <button
+              className="settings-button"
               onClick={toggleSettingsModal}
               aria-label="Settings"
             >
@@ -428,7 +430,7 @@ const Chat: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {showSettingsModal && (
         <SettingsModal onClose={toggleSettingsModal} />
       )}
@@ -436,4 +438,4 @@ const Chat: React.FC = () => {
   );
 };
 
-export default Chat; 
+export default Chat;
