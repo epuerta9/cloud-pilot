@@ -1,4 +1,4 @@
-"""User interaction node for the Cloud Pilot application."""
+"""Node for handling user interaction."""
 
 import os
 from typing import Dict
@@ -6,12 +6,13 @@ from pathlib import Path
 
 from llama_index.llms.openai import OpenAI
 
-# Import the CloudPilotState type
-from src.state import CloudPilotState
 from src.constants import (
     ACTION_ANALYZE, ACTION_GENERATE, ACTION_EXECUTE, ACTION_FILE_OPS,
-    ACTION_PLAN, ACTION_USER_INTERACTION, ACTION_END
+    ACTION_PLAN, ACTION_END
 )
+
+# Import the CloudPilotState type
+from src.state import CloudPilotState
 
 
 def user_interaction(state: CloudPilotState) -> CloudPilotState:
@@ -24,76 +25,129 @@ def user_interaction(state: CloudPilotState) -> CloudPilotState:
     Returns:
         Updated state with next action
     """
-    # Create a new state to avoid modifying the input
+    # Create a copy of the state to modify
     new_state = state.copy()
 
-    # If there's an error, display it and clear it
-    if new_state.get("error"):
-        print(f"Error: {new_state['error']}")
-        new_state["error"] = ""
+    try:
+        # Display the current state to the user
+        print("\n" + "="*50)
+        print("Cloud Pilot - Terraform Agent")
+        print("="*50)
 
-    # If there's a result, display it and clear it
-    if new_state.get("result"):
-        print(f"Result: {new_state['result']}")
-        new_state["result"] = ""
+        # Display the current task
+        print(f"\nCurrent Task: {state['task']}")
 
-    # If there's a task, display it
-    if new_state.get("task"):
-        print(f"\nCurrent task: {new_state['task']}")
+        # Display the result of the last operation, if any
+        if state["result"]:
+            print("\nResult:")
+            print(state["result"])
 
-    # If there's terraform code, display it
-    if new_state.get("terraform_code"):
-        print("\nCurrent Terraform code:")
-        print(new_state["terraform_code"])
+        # Display any errors
+        if state["error"]:
+            print("\nError:")
+            print(state["error"])
 
-    # Get user input based on the current state
-    if not new_state.get("task"):
-        # If there's no task, ask for one
-        task = input("\nWhat would you like to do? ")
-        new_state["task"] = task
-        new_state["next_action"] = ACTION_ANALYZE
+        # Get user input
+        print("\nWhat would you like to do next?")
+        print("1. Analyze Terraform code")
+        print("2. Generate/modify Terraform code")
+        print("3. Create Terraform plan")
+        print("4. Execute Terraform commands")
+        print("5. Perform file system operations")
+        print("6. Change the current task")
+        print("7. Exit")
 
-    elif not new_state.get("terraform_code"):
-        # If there's no terraform code, ask what to do
-        print("\nWhat would you like to do?")
-        print("1. Analyze existing code")
-        print("2. Generate new code")
-        print("3. Exit")
-
-        choice = input("Enter your choice (1-3): ")
+        choice = input("\nEnter your choice (1-7): ")
 
         if choice == "1":
-            # Get the path to the terraform code
-            path = input("\nEnter the path to your Terraform code: ")
-            new_state["terraform_file_path"] = path
+            # Analyze Terraform code
             new_state["next_action"] = ACTION_ANALYZE
 
+            # If there's no terraform file path, ask for one
+            if not state["terraform_file_path"]:
+                file_path = input("Enter the path to the Terraform file: ")
+                new_state["terraform_file_path"] = file_path
+
         elif choice == "2":
+            # Generate/modify Terraform code
             new_state["next_action"] = ACTION_GENERATE
 
-        else:
-            new_state["next_action"] = ACTION_END
+            # If there's a current task, confirm or update it
+            current_task = state["task"]
+            print(f"\nCurrent task: {current_task}")
+            update_task = input("Would you like to update the task? (y/n): ")
 
-    else:
-        # If we have both a task and terraform code, show the menu
-        print("\nWhat would you like to do?")
-        print("1. Plan changes")
-        print("2. Generate new code")
-        print("3. Execute changes")
-        print("4. File operations")
-        print("5. Exit")
+            if update_task.lower() == "y":
+                new_task = input("Enter the new task: ")
+                new_state["task"] = new_task
 
-        choice = input("Enter your choice (1-5): ")
-
-        if choice == "1":
-            new_state["next_action"] = ACTION_PLAN
-        elif choice == "2":
-            new_state["next_action"] = ACTION_GENERATE
         elif choice == "3":
-            new_state["next_action"] = ACTION_EXECUTE
+            # Create Terraform plan
+            new_state["next_action"] = ACTION_PLAN
+
+            # If there's no terraform file path, ask for one
+            if not state["terraform_code"]:
+                file_path = input("Enter the path to the Terraform file: ")
+                contents = Path(file_path).read_text()
+                new_state["terraform_code"] = contents
+
         elif choice == "4":
+            # Execute Terraform commands
+            new_state["next_action"] = ACTION_EXECUTE
+
+            # If there's no terraform file path, ask for one
+            if not state["terraform_file_path"]:
+                file_path = input("Enter the path to the Terraform file: ")
+                new_state["terraform_file_path"] = file_path
+
+        elif choice == "5":
+            # Perform file system operations
             new_state["next_action"] = ACTION_FILE_OPS
-        else:
+
+            # Get the file system operation to perform
+            operation = input("Describe the file operation you want to perform: ")
+            new_state["user_input"] = operation
+
+        elif choice == "6":
+            # Change the current task
+            new_task = input("Enter the new task: ")
+            new_state["task"] = new_task
+
+            # Ask for the next action
+            print("\nWhat would you like to do with this new task?")
+            print("1. Analyze existing Terraform code")
+            print("2. Generate new Terraform code")
+            print("3. Create Terraform plan")
+
+            next_action = input("Enter your choice (1-3): ")
+
+            if next_action == "1":
+                new_state["next_action"] = ACTION_ANALYZE
+                file_path = input("Enter the path to the Terraform file: ")
+                new_state["terraform_file_path"] = file_path
+            elif next_action == "2":
+                new_state["next_action"] = ACTION_GENERATE
+                # Clear existing terraform code to generate fresh code
+                new_state["terraform_code"] = ""
+            else:
+                new_state["next_action"] = ACTION_PLAN
+                file_path = input("Enter the path to the Terraform file: ")
+                new_state["terraform_file_path"] = file_path
+
+        elif choice == "7":
+            # Exit
             new_state["next_action"] = ACTION_END
+            print("\nExiting Cloud Pilot. Goodbye!")
+
+        else:
+            # Invalid choice
+            print("\nInvalid choice. Please try again.")
+            # Keep the current next_action
+            new_state["next_action"] = state["next_action"]
+
+    except Exception as e:
+        new_state["error"] = f"Error in user interaction: {str(e)}"
+        # Default to user interaction again
+        new_state["next_action"] = state["next_action"]
 
     return new_state
