@@ -38,34 +38,20 @@ class State(TypedDict):
 
 def build_example_graph() -> StateGraph:
     """Build the Terraform generation workflow graph."""
-
-    # Create the graph with our state type
     graph = StateGraph(State)
 
+    # Add nodes
     graph.add_node(NODE_GENERATE_TERRAFORM, generate_terraform)
     graph.add_node(NODE_TERRAFORM_PLAN, terraform_plan)
     graph.add_node(NODE_PLAN_APPROVAL, plan_approval)
     graph.add_node(NODE_EXECUTE_TERRAFORM, execute_terraform)
 
-    # Add edges to define the workflow
+    # Add edges with explicit state passing
     graph.add_edge(NODE_GENERATE_TERRAFORM, NODE_TERRAFORM_PLAN)
     graph.add_edge(NODE_TERRAFORM_PLAN, NODE_PLAN_APPROVAL)
-
-    # Add conditional edges from plan_approval based on user feedback
-    # graph.add_conditional_edges(
-    #     NODE_PLAN_APPROVAL,
-    #     handle_plan_feedback,
-    #     {
-    #         ACTION_EXECUTE: NODE_EXECUTE_TERRAFORM,
-    #         ACTION_GENERATE: NODE_GENERATE_TERRAFORM,
-    #         ACTION_USER_INTERACTION: END
-    #     }
-    # )
-
-    # Add edge from execute to end
     graph.add_edge(NODE_EXECUTE_TERRAFORM, END)
 
-    # Set the entry point
+    # Set entry point with initial state
     graph.set_entry_point(NODE_GENERATE_TERRAFORM)
 
     return graph.compile()

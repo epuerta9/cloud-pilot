@@ -11,7 +11,7 @@ def plan_approval(state: CloudPilotState) -> Command[Literal["execute_terraform"
             "question": "Is this correct?",
             # Surface the output that should be
             # reviewed and approved by the human.
-            "llm_output": state["result"]
+            "llm_output": "This is a test"
         }
     )
     print(is_approved)
