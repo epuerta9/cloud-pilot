@@ -6,8 +6,10 @@ from typing import Dict
 from llama_index.llms.openai import OpenAI
 from llama_index.core import Settings
 
-# Import the CloudPilotState type
+# Import the CloudPilotState type and agents
 from src.state import CloudPilotState
+from src.agents.interpreter_agent import InterpreterAgent
+from src.agents.tf_generator_agent import TerraformGeneratorAgent
 
 
 def generate_terraform(state: CloudPilotState) -> CloudPilotState:
@@ -24,61 +26,24 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
     new_state = state.copy()
     
     try:
-        # Initialize the LLM
-        llm = OpenAI(model="gpt-4")
+        # Initialize agents
+        interpreter = InterpreterAgent()
+        tf_generator = TerraformGeneratorAgent()
         
-        # Prepare the prompt based on whether we're creating new code or modifying existing code
-        if state["terraform_code"]:
-            # We're modifying existing code
-            prompt = f"""
-            Modify the following Terraform code based on this task: {state["task"]}
-            
-            Current Terraform code:
-            ```
-            {state["terraform_code"]}
-            ```
-            
-            If there was an analysis result, consider it: {state["result"]}
-            
-            Return only the modified Terraform code, no explanations.
-            """
-        else:
-            # We're creating new code
-            prompt = f"""
-            Generate Terraform code for the following task: {state["task"]}
-            
-            Return only the Terraform code, no explanations.
-            """
+        # First, interpret the user's request into AWS services
+        aws_specification = interpreter.interpret_request(state["task"])
         
-        # Generate the Terraform code
-        response = llm.complete(prompt)
+        # Initialize the Terraform workspace
+        tf_generator.initialize_workspace()
         
-        # Extract the code from the response
-        terraform_code = response.text
-        
-        # Clean up the code (remove markdown code blocks if present)
-        if terraform_code.startswith("```") and terraform_code.endswith("```"):
-            terraform_code = terraform_code.split("```")[1]
-            if terraform_code.startswith("terraform") or terraform_code.startswith("hcl"):
-                terraform_code = terraform_code[terraform_code.find("\n")+1:]
-        
-        # Update the state with the generated code
-        new_state["terraform_code"] = terraform_code
-        
-        # If there's no file path yet, create one
-        if not state["terraform_file_path"]:
-            # Create a directory for the Terraform files if it doesn't exist
-            os.makedirs("terraform", exist_ok=True)
-            new_state["terraform_file_path"] = "terraform/main.tf"
-        
-        # Write the code to the file
-        with open(new_state["terraform_file_path"], "w") as f:
-            f.write(terraform_code)
-        
-        new_state["result"] = f"Terraform code generated and saved to {new_state['terraform_file_path']}"
+        # Store the interpreted specification in the result
+        new_state["result"] = f"Interpreted Request: {aws_specification}"
         new_state["error"] = ""
         
+        # We'll continue with the rest of the tf_generator functionality
+        # in the next steps...
+        
     except Exception as e:
-        new_state["error"] = f"Error generating Terraform code: {str(e)}"
+        new_state["error"] = f"Error in generate_terraform: {str(e)}"
     
     return new_state 

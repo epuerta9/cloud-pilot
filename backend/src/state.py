@@ -1,17 +1,15 @@
 from typing import Any, Dict, Optional, TypedDict
 from dataclasses import dataclass, field
+from typing import Annotated
+from langgraph.graph.message import add_messages
 
-@dataclass
-class CloudPilotState:
-    """State object for the Cloud Pilot application."""
-    # Add whatever fields were in the original CloudPilotState
-    messages: list[str] = field(default_factory=list)
-    context: Dict[str, Any] = field(default_factory=dict)
-    error: Optional[str] = None
-    # Add other fields as needed 
+
 
 class CloudPilotState(TypedDict):
     """State for the Cloud Pilot graph."""
+
+    messages: Annotated[list, add_messages]
+
     # The current task description
     task: str
     # The current terraform code

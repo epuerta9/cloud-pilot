@@ -13,7 +13,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 def mock_env_vars():
     """Mock environment variables for testing."""
     with patch.dict(os.environ, {
-        "OPENAI_API_KEY": "test-api-key",
+        "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],
+        "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
         "ENVIRONMENT": "test",
         "LOG_LEVEL": "ERROR"
     }):
