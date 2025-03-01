@@ -5,7 +5,7 @@ import subprocess
 from typing import Dict
 
 # Import the CloudPilotState type
-from src.main import CloudPilotState
+from src.state import CloudPilotState
 
 
 def execute_terraform(state: CloudPilotState) -> CloudPilotState:

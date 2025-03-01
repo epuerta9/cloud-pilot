@@ -1,7 +1,7 @@
 """Main entry point for the Cloud Pilot application."""
 
 import os
-from typing import Annotated, Dict, TypedDict, Union
+from typing import Annotated, Dict, Union
 
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
@@ -12,35 +12,10 @@ from src.nodes.generate_terraform import generate_terraform
 from src.nodes.execute_terraform import execute_terraform
 from src.nodes.file_system_operations import file_system_operations
 from src.nodes.user_interaction import user_interaction
+from src.state import CloudPilotState
 
 # Load environment variables
 load_dotenv()
-
-
-class CloudPilotState(TypedDict):
-    """State for the Cloud Pilot graph."""
-    
-    # The current task description
-    task: str
-    
-    # The current terraform code
-    terraform_code: str
-    
-    # The path to the terraform file
-    terraform_file_path: str
-    
-    # The result of the last operation
-    result: str
-    
-    # Any error messages
-    error: str
-    
-    # User input/feedback
-    user_input: str
-    
-    # Next action to take
-    next_action: str
-
 
 def build_graph() -> StateGraph:
     """Build the LangGraph for Cloud Pilot."""
@@ -92,7 +67,7 @@ def main():
     # Build the graph
     graph = build_graph()
     
-    # Compile the graph
+    # # Compile the graph
     app = graph.compile()
     
     # Initial state
