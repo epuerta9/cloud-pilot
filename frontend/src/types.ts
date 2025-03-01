@@ -28,6 +28,18 @@ export interface TerraformPlanJson {
   applyable?: boolean;
   timestamp?: string;
   root_module?: any;
+  resource_changes?: Array<{
+    address?: string;
+    mode?: string;
+    type?: string;
+    name?: string;
+    provider_name?: string;
+    change?: {
+      actions?: string[];
+      before?: any;
+      after?: any;
+    };
+  }>;
 }
 
 // Define a specific type for table rows
