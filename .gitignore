@@ -3,3 +3,5 @@
 backend/.env
 
 .venv/
+__pycache__/
+backend/build
