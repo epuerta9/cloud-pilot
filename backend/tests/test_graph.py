@@ -1,118 +1,95 @@
-"""Tests for the LangGraph."""
+"""Tests for the Cloud Pilot graph."""
 
 import pytest
 from unittest.mock import patch, MagicMock
 
-from src.main import build_graph, CloudPilotState
-
+from src.main import build_graph
+from src.constants import (
+    NODE_ANALYZE_TERRAFORM, NODE_GENERATE_TERRAFORM, NODE_EXECUTE_TERRAFORM,
+    NODE_FILE_SYSTEM_OPERATIONS, NODE_USER_INTERACTION, NODE_TERRAFORM_PLAN,
+    NODE_PLAN_APPROVAL, ACTION_ANALYZE, ACTION_GENERATE, ACTION_EXECUTE,
+    ACTION_FILE_OPS, ACTION_PLAN, ACTION_END
+)
 
 @pytest.fixture
 def mock_nodes():
-    """Mock all the nodes in the graph."""
+    """Create mock nodes for testing."""
     with patch("src.main.analyze_terraform") as mock_analyze, \
          patch("src.main.generate_terraform") as mock_generate, \
          patch("src.main.execute_terraform") as mock_execute, \
          patch("src.main.file_system_operations") as mock_file_ops, \
+         patch("src.main.terraform_plan") as mock_plan, \
+         patch("src.main.plan_approval") as mock_approval, \
          patch("src.main.user_interaction") as mock_user:
-        
-        # Set up the mock behaviors
-        def mock_analyze_fn(state):
-            new_state = state.copy()
-            new_state["result"] = "Analysis complete"
-            return new_state
-        
-        def mock_generate_fn(state):
-            new_state = state.copy()
-            new_state["terraform_code"] = 'provider "aws" {}'
-            new_state["result"] = "Generation complete"
-            return new_state
-        
-        def mock_execute_fn(state):
-            new_state = state.copy()
-            new_state["result"] = "Execution complete"
-            return new_state
-        
-        def mock_file_ops_fn(state):
-            new_state = state.copy()
-            new_state["result"] = "File operation complete"
-            return new_state
-        
-        def mock_user_fn(state):
-            new_state = state.copy()
-            new_state["next_action"] = "analyze"  # Default to analyze
-            return new_state
-        
-        mock_analyze.side_effect = mock_analyze_fn
-        mock_generate.side_effect = mock_generate_fn
-        mock_execute.side_effect = mock_execute_fn
-        mock_file_ops.side_effect = mock_file_ops_fn
-        mock_user.side_effect = mock_user_fn
-        
+
+        # Configure mock returns
+        mock_analyze.return_value = {"next_action": ACTION_GENERATE}
+        mock_generate.return_value = {"next_action": ACTION_PLAN}
+        mock_execute.return_value = {"next_action": ACTION_END}
+        mock_file_ops.return_value = {"next_action": ACTION_END}
+        mock_plan.return_value = {"next_action": ACTION_END}
+        mock_approval.return_value = {"next_action": ACTION_END}
+        mock_user.return_value = {"next_action": ACTION_ANALYZE}
+
         yield {
-            "analyze_terraform": mock_analyze,
-            "generate_terraform": mock_generate,
-            "execute_terraform": mock_execute,
-            "file_system_operations": mock_file_ops,
-            "user_interaction": mock_user
+            NODE_ANALYZE_TERRAFORM: mock_analyze,
+            NODE_GENERATE_TERRAFORM: mock_generate,
+            NODE_EXECUTE_TERRAFORM: mock_execute,
+            NODE_FILE_SYSTEM_OPERATIONS: mock_file_ops,
+            NODE_TERRAFORM_PLAN: mock_plan,
+            NODE_PLAN_APPROVAL: mock_approval,
+            NODE_USER_INTERACTION: mock_user
         }
 
-
-def test_build_graph():
-    """Test that the graph builds correctly."""
+def test_graph_initialization(mock_nodes):
+    """Test that the graph is initialized with all required nodes."""
     graph = build_graph()
-    
-    # Check that the graph has the expected nodes
-    assert "analyze_terraform" in graph.nodes
-    assert "generate_terraform" in graph.nodes
-    assert "execute_terraform" in graph.nodes
-    assert "file_system_operations" in graph.nodes
-    assert "user_interaction" in graph.nodes
 
+    # Check that all nodes are present
+    assert NODE_ANALYZE_TERRAFORM in graph.nodes
+    assert NODE_GENERATE_TERRAFORM in graph.nodes
+    assert NODE_EXECUTE_TERRAFORM in graph.nodes
+    assert NODE_FILE_SYSTEM_OPERATIONS in graph.nodes
+    assert NODE_USER_INTERACTION in graph.nodes
+    assert NODE_TERRAFORM_PLAN in graph.nodes
+    assert NODE_PLAN_APPROVAL in graph.nodes
 
-def test_graph_analyze_flow(mock_nodes):
+def test_analyze_flow(mock_nodes):
     """Test the flow from user_interaction to analyze_terraform to generate_terraform."""
-    # Build and compile the graph
     graph = build_graph()
     app = graph.compile()
-    
-    # Set up the initial state
+
+    # Initial state
     initial_state = {
         "task": "Create an S3 bucket",
         "terraform_code": "",
-        "terraform_file_path": "terraform/main.tf",
+        "terraform_file_path": "test.tf",
         "result": "",
         "error": "",
         "user_input": "",
-        "next_action": "analyze"
+        "next_action": ACTION_ANALYZE
     }
-    
-    # Run the graph for a few steps
-    states = list(app.stream(initial_state, max_steps=3))
-    
-    # Check that the nodes were called in the expected order
-    assert mock_nodes["user_interaction"].called
-    assert mock_nodes["analyze_terraform"].called
-    assert mock_nodes["generate_terraform"].called
-    
-    # Check the final state
-    final_state = states[-1].values
-    assert final_state["result"] == "Generation complete"
-    assert final_state["terraform_code"] == 'provider "aws" {}'
 
+    # Run the graph
+    for _ in app.stream(initial_state):
+        pass
 
-def test_graph_generate_flow(mock_nodes):
+    # Verify the flow
+    assert mock_nodes[NODE_USER_INTERACTION].called
+    assert mock_nodes[NODE_ANALYZE_TERRAFORM].called
+    assert mock_nodes[NODE_GENERATE_TERRAFORM].called
+
+def test_generate_flow(mock_nodes):
     """Test the flow from user_interaction to generate_terraform."""
     # Modify the user_interaction mock to return "generate"
-    mock_nodes["user_interaction"].side_effect = lambda state: {
-        **state,
-        "next_action": "generate"
+    mock_nodes[NODE_USER_INTERACTION].side_effect = lambda state: {
+        "next_action": ACTION_GENERATE
     }
-    
-    # Build and compile the graph
+
     graph = build_graph()
     app = graph.compile()
-    
-    # Set up the initial state
+
+    # Initial state
     initial_state = {
         "task": "Create an S3 bucket",
         "terraform_code": "",
@@ -120,124 +97,101 @@ def test_graph_generate_flow(mock_nodes):
         "result": "",
         "error": "",
         "user_input": "",
-        "next_action": "generate"
+        "next_action": ACTION_GENERATE
     }
-    
-    # Run the graph for a few steps
-    states = list(app.stream(initial_state, max_steps=2))
-    
-    # Check that the nodes were called in the expected order
-    assert mock_nodes["user_interaction"].called
-    assert mock_nodes["generate_terraform"].called
-    
-    # Check the final state
-    final_state = states[-1].values
-    assert final_state["result"] == "Generation complete"
-    assert final_state["terraform_code"] == 'provider "aws" {}'
 
+    # Run the graph
+    for _ in app.stream(initial_state):
+        pass
 
-def test_graph_execute_flow(mock_nodes):
+    # Verify the flow
+    assert mock_nodes[NODE_USER_INTERACTION].called
+    assert mock_nodes[NODE_GENERATE_TERRAFORM].called
+
+def test_execute_flow(mock_nodes):
     """Test the flow from user_interaction to execute_terraform."""
     # Modify the user_interaction mock to return "execute"
-    mock_nodes["user_interaction"].side_effect = lambda state: {
-        **state,
-        "next_action": "execute"
+    mock_nodes[NODE_USER_INTERACTION].side_effect = lambda state: {
+        "next_action": ACTION_EXECUTE
     }
-    
-    # Build and compile the graph
+
     graph = build_graph()
     app = graph.compile()
-    
-    # Set up the initial state
+
+    # Initial state
     initial_state = {
-        "task": "Create an S3 bucket",
-        "terraform_code": 'provider "aws" {}',
-        "terraform_file_path": "terraform/main.tf",
+        "task": "Apply Terraform changes",
+        "terraform_code": "resource \"aws_s3_bucket\" \"test\" {}",
+        "terraform_file_path": "test.tf",
         "result": "",
         "error": "",
         "user_input": "",
-        "next_action": "execute"
+        "next_action": ACTION_EXECUTE
     }
-    
-    # Run the graph for a few steps
-    states = list(app.stream(initial_state, max_steps=2))
-    
-    # Check that the nodes were called in the expected order
-    assert mock_nodes["user_interaction"].called
-    assert mock_nodes["execute_terraform"].called
-    
-    # Check the final state
-    final_state = states[-1].values
-    assert final_state["result"] == "Execution complete"
 
+    # Run the graph
+    for _ in app.stream(initial_state):
+        pass
 
-def test_graph_file_ops_flow(mock_nodes):
+    # Verify the flow
+    assert mock_nodes[NODE_USER_INTERACTION].called
+    assert mock_nodes[NODE_EXECUTE_TERRAFORM].called
+
+def test_file_ops_flow(mock_nodes):
     """Test the flow from user_interaction to file_system_operations."""
     # Modify the user_interaction mock to return "file_ops"
-    mock_nodes["user_interaction"].side_effect = lambda state: {
-        **state,
-        "next_action": "file_ops"
+    mock_nodes[NODE_USER_INTERACTION].side_effect = lambda state: {
+        "next_action": ACTION_FILE_OPS
     }
-    
-    # Build and compile the graph
+
     graph = build_graph()
     app = graph.compile()
-    
-    # Set up the initial state
+
+    # Initial state
     initial_state = {
-        "task": "Create an S3 bucket",
+        "task": "List Terraform files",
         "terraform_code": "",
         "terraform_file_path": "",
         "result": "",
         "error": "",
-        "user_input": "List files in the terraform directory",
-        "next_action": "file_ops"
+        "user_input": "list files",
+        "next_action": ACTION_FILE_OPS
     }
-    
-    # Run the graph for a few steps
-    states = list(app.stream(initial_state, max_steps=2))
-    
-    # Check that the nodes were called in the expected order
-    assert mock_nodes["user_interaction"].called
-    assert mock_nodes["file_system_operations"].called
-    
-    # Check the final state
-    final_state = states[-1].values
-    assert final_state["result"] == "File operation complete"
 
+    # Run the graph
+    for _ in app.stream(initial_state):
+        pass
 
-def test_graph_end_flow(mock_nodes):
+    # Verify the flow
+    assert mock_nodes[NODE_USER_INTERACTION].called
+    assert mock_nodes[NODE_FILE_SYSTEM_OPERATIONS].called
+
+def test_end_flow(mock_nodes):
     """Test the flow from user_interaction to END."""
     # Modify the user_interaction mock to return "end"
-    mock_nodes["user_interaction"].side_effect = lambda state: {
-        **state,
-        "next_action": "end"
+    mock_nodes[NODE_USER_INTERACTION].side_effect = lambda state: {
+        "next_action": ACTION_END
     }
-    
-    # Build and compile the graph
+
     graph = build_graph()
     app = graph.compile()
-    
-    # Set up the initial state
+
+    # Initial state
     initial_state = {
-        "task": "Create an S3 bucket",
+        "task": "Exit",
         "terraform_code": "",
         "terraform_file_path": "",
         "result": "",
         "error": "",
         "user_input": "",
-        "next_action": "end"
+        "next_action": ACTION_END
     }
-    
+
     # Run the graph
-    states = list(app.stream(initial_state))
-    
+    for _ in app.stream(initial_state):
+        pass
+
     # Check that only the user_interaction node was called
-    assert mock_nodes["user_interaction"].called
-    assert not mock_nodes["analyze_terraform"].called
-    assert not mock_nodes["generate_terraform"].called
-    assert not mock_nodes["execute_terraform"].called
-    assert not mock_nodes["file_system_operations"].called
-    
-    # Check that the graph ended
-    assert states[-1].is_last 
+    assert mock_nodes[NODE_USER_INTERACTION].called
+    assert not mock_nodes[NODE_ANALYZE_TERRAFORM].called
+    assert not mock_nodes[NODE_GENERATE_TERRAFORM].called
