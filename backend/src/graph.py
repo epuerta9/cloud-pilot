@@ -2,7 +2,6 @@
 
 import os
 from typing import Dict, Annotated, Literal
-from typing import Dict, Annotated, Literal
 from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, END
@@ -10,18 +9,20 @@ from langgraph.graph.message import add_messages
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import interrupt, Command
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.types import interrupt, Command
 
 from src.nodes.generate_terraform import generate_terraform
 from src.nodes.terraform_plan import terraform_plan
 from src.nodes.plan_approval import plan_approval, handle_plan_feedback
 from src.nodes.execute_terraform import execute_terraform
+from src.nodes.terraform_show import terraform_show
 
 from src.constants import (
     NODE_GENERATE_TERRAFORM, NODE_TERRAFORM_PLAN, NODE_PLAN_APPROVAL,
     NODE_EXECUTE_TERRAFORM, ACTION_EXECUTE, ACTION_GENERATE, ACTION_USER_INTERACTION
 )
+
+# Add constant for show node
+NODE_TERRAFORM_SHOW = "node_terraform_show"
 
 class State(TypedDict):
     """State definition for the graph."""
@@ -30,12 +31,14 @@ class State(TypedDict):
     terraform_code: str
     terraform_file_path: str
     terraform_built: bool
+    terraform_show: dict  # This is the state key
     result: str
     error: str
     user_input: str
     next_action: str
 
 checkpointer = MemorySaver()
+
 def build_example_graph() -> StateGraph:
     """Build the Terraform generation workflow graph."""
     graph = StateGraph(State)
@@ -45,13 +48,15 @@ def build_example_graph() -> StateGraph:
     graph.add_node(NODE_TERRAFORM_PLAN, terraform_plan)
     graph.add_node(NODE_PLAN_APPROVAL, plan_approval)
     graph.add_node(NODE_EXECUTE_TERRAFORM, execute_terraform)
+    graph.add_node(NODE_TERRAFORM_SHOW, terraform_show)  # Use the constant instead
 
     # Add edges with explicit state passing
     graph.add_edge(NODE_GENERATE_TERRAFORM, NODE_TERRAFORM_PLAN)
     graph.add_edge(NODE_TERRAFORM_PLAN, NODE_PLAN_APPROVAL)
-    graph.add_edge(NODE_EXECUTE_TERRAFORM, END)
+    graph.add_edge(NODE_EXECUTE_TERRAFORM, NODE_TERRAFORM_SHOW)  # Use the constant
+    graph.add_edge(NODE_TERRAFORM_SHOW, END)  # Use the constant
 
-    # Set entry point with initial state
+    # Set entry point
     graph.set_entry_point(NODE_GENERATE_TERRAFORM)
 
     return graph.compile(checkpointer=checkpointer)
