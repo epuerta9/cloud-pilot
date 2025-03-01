@@ -87,6 +87,7 @@ CRITICAL VPC REQUIREMENTS:
 5. Use consistent CIDR blocks (e.g., 10.0.1.0/24 for public, 10.0.2.0/24 for private)
 6. Associate subnets with the load balancer
 7. Ensure security groups allow traffic between ELB and EC2 instances
+8. ALWAYS use us-east-1 as the region for any resource that needs it.
 
 EXAMPLE VPC CONFIGURATION:
 resource "aws_vpc" "cloudpilot_vpc" {

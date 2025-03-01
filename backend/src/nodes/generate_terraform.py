@@ -30,12 +30,15 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
         # Initialize agents
         interpreter = InterpreterAgent()
         tf_generator = TerraformGeneratorAgent()
+
+        print(f"State: {state['messages']}")
         
         # First, interpret the user's request into AWS services
-        aws_specification = interpreter.interpret_request(state["task"])
         
+        #aws_specification = interpreter.interpret_request(state["task"])
+        aws_specification = " ".join([message.content for message in state["messages"]])
         # Generate and validate Terraform code
-        tf_code, tf_validation = tf_generator.generate_terraform(state["task"])
+        tf_code, tf_validation = tf_generator.generate_terraform(aws_specification)
         
         # Update the state with the results
         new_state["terraform_code"] = tf_code
@@ -46,7 +49,6 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
         
         # Store results
         new_state["result"] = f"""
-        Interpreted Request: {aws_specification}
         
         Terraform Output: {tf_validation}
         

@@ -3,9 +3,10 @@
 import sys
 from typing import Optional
 from langgraph_sdk import get_sync_client
+from langgraph.types import Command
 from rich.console import Console
 from rich.markdown import Markdown
-
+import json
 console = Console()
 
 class CloudPilotClient:
@@ -14,7 +15,8 @@ class CloudPilotClient:
     def __init__(self, url: str = "http://localhost:2024"):
         """Initialize the client."""
         self.client = get_sync_client(url=url)
-        self.thread_id = None
+        self.thread_id = self.create_thread()
+        self.current_run_id = None
 
     def create_thread(self) -> str:
         """Create a new thread for conversation."""
@@ -22,6 +24,15 @@ class CloudPilotClient:
         # The response is a dict with thread_id key
         self.thread_id = thread["thread_id"]
         return self.thread_id
+
+    def handle_interrupt(self, run_id: str) -> None:
+        """Handle an interrupt by getting user input and resuming."""
+        # Get user approval
+        user_input = input("\nDo you approve? (y/n): ").lower().strip()
+        approved = user_input.startswith('y')
+        
+        # Resume the run with user's response
+        self.client.runs.create(self.thread_id,"agent", command=Command(resume=approved))
 
     def chat(self, message: str) -> None:
         """
@@ -31,9 +42,8 @@ class CloudPilotClient:
             message: The user's message
         """
         try:
-            # Create thread if needed
-            if not self.thread_id:
-                self.create_thread()
+            # # Create thread if needed
+
 
             # Stream the response
             input_data = {
@@ -43,8 +53,10 @@ class CloudPilotClient:
                 }]
             }
 
+            
+
             for chunk in self.client.runs.stream(
-                None,  # Threadless run
+                self.thread_id,
                 "agent",
                 input=input_data,
                 stream_mode="updates",
@@ -55,6 +67,11 @@ class CloudPilotClient:
 
                 # Print event type for debugging
                 console.print(f"\n[dim]Event: {chunk.event}[/dim]")
+
+                # Handle interrupts
+                if "__interrupt__" in chunk.data:
+                    self.handle_interrupt(self.current_run_id)
+                    continue
 
                 if chunk.event == "message":
                     # Print assistant messages

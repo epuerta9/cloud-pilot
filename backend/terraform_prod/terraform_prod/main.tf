@@ -30,10 +30,9 @@ resource "aws_internet_gateway" "cloudpilot_igw" {
 }
 
 resource "aws_subnet" "cloudpilot_public_subnet" {
-  vpc_id                  = aws_vpc.cloudpilot_vpc.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
+  vpc_id            = aws_vpc.cloudpilot_vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
 
   tags = {
     Name = "cloudpilot_public_subnet"
@@ -84,15 +83,21 @@ resource "aws_security_group" "cloudpilot_sg" {
 }
 
 resource "aws_instance" "cloudpilot_webserver" {
-  ami                    = "ami-05b10e08d247fb927"
-  instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.cloudpilot_public_subnet.id
+  ami           = "ami-05b10e08d247fb927"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.cloudpilot_public_subnet.id
+
   vpc_security_group_ids = [aws_security_group.cloudpilot_sg.id]
+
+  associate_public_ip_address = true
 
   user_data = <<-EOF
               #!/bin/bash
-              echo "Hello, World!" > index.html
-              nohup python -m SimpleHTTPServer 80 &
+              yum update -y
+              yum install -y httpd
+              systemctl start httpd
+              systemctl enable httpd
+              echo "<h1>Hello from Cloudpilot Webserver</h1>" > /var/www/html/index.html
               EOF
 
   tags = {
@@ -102,5 +107,5 @@ resource "aws_instance" "cloudpilot_webserver" {
 
 output "webserver_public_ip" {
   value       = aws_instance.cloudpilot_webserver.public_ip
-  description = "Public IP address of the webserver"
+  description = "The public IP address of the webserver"
 }
