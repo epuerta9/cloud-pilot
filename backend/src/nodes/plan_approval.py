@@ -6,10 +6,12 @@ from src.state import CloudPilotState
 from src.constants import ACTION_EXECUTE, ACTION_GENERATE, ACTION_USER_INTERACTION
 
 def plan_approval(state: CloudPilotState) -> Command[Literal["execute_terraform", "generate_terraform"]]:
+    print(state)
     is_approved = interrupt(
         {
             "question": "Is this correct?",
-            "plan_output": state["result"]
+            "plan_output": state["result"],
+            "plan_json": state["terraform_json"],
         }
     )
     print(is_approved)

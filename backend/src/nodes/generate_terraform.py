@@ -18,36 +18,36 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
     """
     Generate infrastructure code based on the task description.
     Uses Terraform for infrastructure as code.
-    
+
     Args:
         state: The current state of the graph
-        
+
     Returns:
         Updated state with generated infrastructure code
     """
     # Create a copy of the state to modify
     new_state = state.copy()
-    
+
     # Get absolute paths
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     output_dir = os.path.join(project_root, "terraform_prod")
-    
+
     try:
         # Create output directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
-        
+
         # Initialize agents
         interpreter = InterpreterAgent()
         tf_generator = TerraformGeneratorAgent()
 
         print(f"State: {state['messages']}")
-        
+
         # Get AWS specification from messages
         aws_specification = " ".join([message.content for message in state["messages"]])
-        
+
         # Generate Terraform code
         tf_code = tf_generator.generate_code(aws_specification)
-        
+
         # Write the generated code to main.tf
         with open(os.path.join(output_dir, "main.tf"), "w") as f:
             f.write(tf_code)
@@ -97,15 +97,15 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
                     plan_data = json.load(f)
             except Exception as e:
                 print(f"Error loading plan JSON: {str(e)}")
-        
+
         # Update the state with the results using absolute paths
         new_state["terraform_code"] = tf_code
         new_state["terraform_file_path"] = os.path.join(output_dir, "main.tf")
-        new_state["terraform_plan"] = plan_data
-        
+        new_state["terraform_json"] = plan_data
+
         # Add sentinel to indicate Terraform was built
         new_state["terraform_built"] = True
-        
+
         # Store results with validation output
         validation_output = f"""
         Init Output:
@@ -119,7 +119,7 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
 
         new_state["result"] = f"""
         Terraform Output: {validation_output}
-        
+
         Generated files:
         - Terraform: {new_state["terraform_file_path"]}
         - Plan JSON: {plan_json_path if plan_data else "Not available"}
@@ -127,16 +127,16 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
         Plan Summary:
         {json.dumps(plan_data["planned_values"], indent=2) if plan_data else "No plan data available"}
         """
-        
+
         # Set error if validation failed
         if plan_result.returncode != 0:
             new_state["error"] = "Plan failed. Check result for details."
             new_state["terraform_built"] = False
         else:
             new_state["error"] = ""
-        
+
     except Exception as e:
         new_state["error"] = f"Error in generate_terraform: {str(e)}"
         new_state["terraform_built"] = False
-    
-    return new_state 
+
+    return new_state

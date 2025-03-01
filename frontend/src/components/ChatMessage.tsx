@@ -54,7 +54,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
 
   return (
     <>
-      {message.requiresConfirmation && message.confirmationData?.plan_output && (
+      {message.requiresConfirmation && message.confirmationData?.terraform_json && (
         <motion.div
           className="chat-bubble assistant-bubble"
           initial={{ opacity: 0, y: 20 }}
@@ -68,7 +68,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
             <div className="message-body">
               <div className="plan-output markdown-content">
                 <ReactMarkdown>
-                  {message.confirmationData.plan_output}
+                  {message.confirmationData.terraform_json}
                 </ReactMarkdown>
               </div>
               <div className="timestamp">
