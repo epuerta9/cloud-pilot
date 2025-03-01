@@ -35,7 +35,7 @@ class State(TypedDict):
     user_input: str
     next_action: str
 
-
+checkpointer = MemorySaver()
 def build_example_graph() -> StateGraph:
     """Build the Terraform generation workflow graph."""
     graph = StateGraph(State)
@@ -54,7 +54,7 @@ def build_example_graph() -> StateGraph:
     # Set entry point with initial state
     graph.set_entry_point(NODE_GENERATE_TERRAFORM)
 
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)
 
 
 # Build graph at module level for streaming
