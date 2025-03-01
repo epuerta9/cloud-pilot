@@ -6,6 +6,11 @@ from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
+from langchain_core.messages import HumanMessage, AIMessage
+
+from src.nodes.generate_terraform import generate_terraform
+from src.nodes.analyze_terraform import analyze_terraform
+from src.nodes.terraform_plan import terraform_plan
 
 class State(TypedDict):
     """State definition for the graph."""
@@ -20,47 +25,48 @@ class State(TypedDict):
     next_action: str
 
 
-def example_node(state: Dict) -> Dict:
-    """Example node that just updates state."""
-    new_state = state.copy()
-    new_state["result"] = f"Processed task: {state['messages'][-1]['content']}"
-    new_state["messages"] = [{"role": "assistant", "content": new_state["result"]}]
-    new_state["next_action"] = "end"
-    return new_state
-
-
 def build_example_graph() -> StateGraph:
-    """Build a minimal example graph."""
+    """Build the Terraform generation workflow graph."""
     
     # Create the graph with our state type
     graph = StateGraph(State)
     
-    # Add a single node
-    graph.add_node("process", example_node)
+    # Add nodes for each step
+    graph.add_node("generate", generate_terraform)
+    graph.add_node("plan", terraform_plan)
     
-    # Add edge to END
-    graph.add_edge("process", END)
+    # Add edges to define the workflow
+    graph.add_edge("generate", "plan")
+    graph.add_edge("plan", END)
     
     # Set the entry point
-    graph.set_entry_point("process")
+    graph.set_entry_point("generate")
     
-    return graph
+    return graph.compile()
 
 
 # Build graph at module level for streaming
 graph = build_example_graph()
 
+print(graph.get_graph().draw_mermaid())
+
+
 
 def stream_graph_updates(user_input: str):
     """Stream updates from the graph execution."""
-    # for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-    #     for value in event.values():
-    #         print("Assistant:", value["messages"][-1]["content"])
-    graph.invoke({"messages": [{"role": "user", "content": user_input}]})
+    # Create initial state with user message
+    message = HumanMessage(content=user_input)
+    
+    for event in graph.stream({"messages": [message]}):
+        for value in event.values():
+            if "messages" in value and value["messages"]:
+                print("Assistant:", value["messages"][-1].content)
+
 
 def main():
-    """Run an interactive example workflow."""
-    print("\n=== Starting Interactive Test ===")
+    """Run an interactive Terraform generation workflow."""
+    print("\n=== Starting Cloud Pilot ===")
+    print("Describe your infrastructure needs and I'll help generate Terraform code.")
     print("Type 'quit', 'exit', or 'q' to end the session")
     
     while True:
@@ -73,13 +79,10 @@ def main():
             stream_graph_updates(user_input)
             
         except Exception as e:
-            # fallback if input() is not available
-            user_input = "What do you know about LangGraph?"
-            print("User: " + user_input)
-            stream_graph_updates(user_input)
+            print(f"\nError: {str(e)}")
             break
     
-    print("\n=== Test Complete ===")
+    print("\n=== Session Complete ===")
 
 
 if __name__ == "__main__":
