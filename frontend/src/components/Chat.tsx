@@ -29,7 +29,7 @@ const Chat: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
 
-  const { isConnected, sendTask, lastResult, confirmationData, sendConfirmation } = useWebSocket();
+  const { isConnected, sendTask, lastResult, confirmationData, sendConfirmation, terraformApplyData } = useWebSocket();
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -329,6 +329,14 @@ const Chat: React.FC = () => {
     }
   };
 
+  // Add a useEffect to handle terraformApplyData
+  useEffect(() => {
+    if (terraformApplyData) {
+      // Switch to document tab when terraform apply data is received
+      setActiveTab('document');
+    }
+  }, [terraformApplyData]);
+
   // Render the main chat interface
   return (
     <div className="app-container">
@@ -513,7 +521,7 @@ const Chat: React.FC = () => {
         </div>
         <div className="document-content">
           {activeTab === 'document' ? (
-            <DocumentView content={currentDocument} isStreaming={isStreaming} />
+            <DocumentView content={currentDocument} isStreaming={isStreaming} terraformApplyData={terraformApplyData} />
           ) : activeTab === 'aws' ? (
             <AwsDashboard />
           ) : (

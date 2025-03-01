@@ -30,10 +30,44 @@ class WebSocketService extends EventEmitter {
       this.ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          console.log('WebSocket message received:', data);
 
           if (data.type === 'confirmation') {
             // Emit confirmation events for the UI to handle
             this.emit('confirmation', data);
+          } else if (data.type === 'progress') {
+            // Handle progress messages
+            if (data.data && data.data.execute_terraform) {
+              console.log('Terraform execution data received:', data.data.execute_terraform);
+              // Emit terraform execution data
+              this.emit('terraformApply', data.data.execute_terraform);
+
+              // If there's a result, also emit it as a message
+              if (data.data.execute_terraform.result) {
+                this.emit('results', {
+                  message: 'Terraform execution completed.',
+                  structuredContent: {
+                    title: 'Terraform Apply',
+                    sections: [
+                      {
+                        type: 'heading',
+                        content: 'Terraform Apply Results',
+                        metadata: { level: 1 }
+                      },
+                      {
+                        type: 'text',
+                        content: `Status: ${data.data.execute_terraform.error ? 'Error' : 'Complete'}`
+                      }
+                    ]
+                  }
+                });
+              }
+            }
+
+            // For all other messages, emit the results
+            if (data.results) {
+              this.emit('results', data.results);
+            }
           } else {
             // For all other messages, emit the results
             if (data.results) {

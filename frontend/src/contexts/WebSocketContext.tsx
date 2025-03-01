@@ -7,6 +7,7 @@ interface WebSocketContextType {
   sendConfirmation: (confirmed: boolean, data?: any) => void;
   lastResult: any | null;
   confirmationData: any | null;
+  terraformApplyData: any | null;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -15,23 +16,27 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isConnected, setIsConnected] = useState(false);
   const [lastResult, setLastResult] = useState<any | null>(null);
   const [confirmationData, setConfirmationData] = useState<any | null>(null);
+  const [terraformApplyData, setTerraformApplyData] = useState<any | null>(null);
 
   useEffect(() => {
     const handleConnect = () => setIsConnected(true);
     const handleDisconnect = () => setIsConnected(false);
     const handleResults = (results: any) => setLastResult(results);
     const handleConfirmation = (data: any) => setConfirmationData(data);
+    const handleTerraformApply = (data: any) => setTerraformApplyData(data);
 
     websocketService.on('connected', handleConnect);
     websocketService.on('disconnected', handleDisconnect);
     websocketService.on('results', handleResults);
     websocketService.on('confirmation', handleConfirmation);
+    websocketService.on('terraformApply', handleTerraformApply);
 
     return () => {
       websocketService.off('connected', handleConnect);
       websocketService.off('disconnected', handleDisconnect);
       websocketService.off('results', handleResults);
       websocketService.off('confirmation', handleConfirmation);
+      websocketService.off('terraformApply', handleTerraformApply);
       websocketService.disconnect();
     };
   }, []);
@@ -51,6 +56,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     sendConfirmation,
     lastResult,
     confirmationData,
+    terraformApplyData,
   };
 
   return (
@@ -66,4 +72,4 @@ export const useWebSocket = () => {
     throw new Error('useWebSocket must be used within a WebSocketProvider');
   }
   return context;
-}; 
+};

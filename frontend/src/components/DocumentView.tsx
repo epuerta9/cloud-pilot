@@ -52,9 +52,14 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
 
       setPlanDetails(details);
       setPlanOutput(output);
-    } else if (content && content.title === 'Terraform Apply' || terraformApplyData) {
+    } else if ((content && content.title === 'Terraform Apply') || terraformApplyData) {
       setIsTerraformPlan(false);
       setIsTerraformApply(true);
+
+      // If we have terraform apply data, make sure we're showing it
+      if (terraformApplyData) {
+        console.log('Setting up terraform apply view with data:', terraformApplyData);
+      }
     } else {
       setIsTerraformPlan(false);
       setIsTerraformApply(false);
@@ -90,6 +95,8 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
   // Render Terraform Apply Results
   const renderTerraformApplyResults = () => {
     if (!terraformApplyData) return null;
+
+    console.log('Rendering terraform apply results:', terraformApplyData);
 
     const { terraform_json, result, error } = terraformApplyData;
     const isComplete = terraform_json?.complete || false;
