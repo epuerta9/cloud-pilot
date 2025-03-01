@@ -52,15 +52,15 @@ def build_example_graph() -> StateGraph:
     graph.add_edge(NODE_TERRAFORM_PLAN, NODE_PLAN_APPROVAL)
 
     # Add conditional edges from plan_approval based on user feedback
-    graph.add_conditional_edges(
-        NODE_PLAN_APPROVAL,
-        handle_plan_feedback,
-        {
-            ACTION_EXECUTE: NODE_EXECUTE_TERRAFORM,
-            ACTION_GENERATE: NODE_GENERATE_TERRAFORM,
-            ACTION_USER_INTERACTION: END
-        }
-    )
+    # graph.add_conditional_edges(
+    #     NODE_PLAN_APPROVAL,
+    #     handle_plan_feedback,
+    #     {
+    #         ACTION_EXECUTE: NODE_EXECUTE_TERRAFORM,
+    #         ACTION_GENERATE: NODE_GENERATE_TERRAFORM,
+    #         ACTION_USER_INTERACTION: END
+    #     }
+    # )
 
     # Add edge from execute to end
     graph.add_edge(NODE_EXECUTE_TERRAFORM, END)

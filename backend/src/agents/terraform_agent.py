@@ -188,7 +188,7 @@ class TerraformAgent:
             os.chdir(directory)
 
             # Prepare the command
-            cmd = ["terraform", "apply", "-no-color"]
+            cmd = ["terraform", "apply","-auto-approve"]
             if auto_approve:
                 cmd.append("-auto-approve")
 

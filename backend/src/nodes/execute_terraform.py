@@ -30,33 +30,27 @@ def execute_terraform(state: CloudPilotState) -> CloudPilotState:
             return new_state
 
         # Check if the file exists
-        if not os.path.exists(state["terraform_file_path"]):
-            new_state["error"] = f"Terraform file not found: {state['terraform_file_path']}"
-            new_state["next_action"] = ACTION_USER_INTERACTION
-            return new_state
+        # if not os.path.exists(state["terraform_file_path"]):
+        #     new_state["error"] = f"Terraform file not found: {state['terraform_file_path']}"
+        #     new_state["next_action"] = ACTION_USER_INTERACTION
+        #     return new_state
 
         # Get the directory containing the Terraform file
         terraform_dir = os.path.dirname(state["terraform_file_path"])
-        if not terraform_dir:
-            terraform_dir = "."
-
-        # Change to the directory containing the Terraform file
-        original_dir = os.getcwd()
-        os.chdir(terraform_dir)
-
+        print(f"Terraform directory: {terraform_dir}")
         try:
-            # Initialize Terraform
-            init_result = subprocess.run(
-                ["terraform", "init"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
+            # # Initialize Terraform
+            # init_result = subprocess.run(
+            #     ["terraform", "init"],
+            #     capture_output=True,
+            #     text=True,
+            #     check=True
+            # )
 
             # Run Terraform apply
             print("Running Terraform apply")
             apply_result = subprocess.run(
-                ["terraform", "apply", "--auto-approve",],
+                ["terraform", "apply", "-auto-approve",],
                 capture_output=True,
                 text=True,
                 check=True
@@ -71,9 +65,9 @@ def execute_terraform(state: CloudPilotState) -> CloudPilotState:
                 new_state["error"] = f"Terraform initialization failed: {e.stderr}"
             else:
                 new_state["error"] = f"Terraform apply failed: {e.stderr}"
-        finally:
+        #finally:
             # Change back to the original directory
-            os.chdir(original_dir)
+            # os.chdir(original_dir)
 
     except Exception as e:
         new_state["error"] = f"Error executing Terraform: {str(e)}"

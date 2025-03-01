@@ -79,46 +79,47 @@ REQUIREMENTS:
 9. NEVER leave any blocks incomplete
 10. ALWAYS use the following AMI ami-05b10e08d247fb927
 
-EXAMPLE OF COMPLETE, VALID CODE:
-provider "aws" {
-  region = "us-east-1"
-}
+CRITICAL VPC REQUIREMENTS:
+1. Create public and private subnets in different availability zones
+2. Ensure EC2 instances and ELB/ALB are in the same VPC
+3. Place EC2 instances in public subnets if they need internet access
+4. Configure route tables and internet gateway properly
+5. Use consistent CIDR blocks (e.g., 10.0.1.0/24 for public, 10.0.2.0/24 for private)
+6. Associate subnets with the load balancer
+7. Ensure security groups allow traffic between ELB and EC2 instances
 
+EXAMPLE VPC CONFIGURATION:
 resource "aws_vpc" "cloudpilot_vpc" {
   cidr_block = "10.0.0.0/16"
-
-  tags = {
-    Name = "cloudpilot_vpc"
-  }
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 }
 
-resource "aws_security_group" "cloudpilot_sg" {
-  name        = "cloudpilot_sg"
-  description = "Allow HTTP traffic"
-  vpc_id      = aws_vpc.cloudpilot_vpc.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "cloudpilot_sg"
-  }
+resource "aws_subnet" "cloudpilot_public_subnet" {
+  vpc_id     = aws_vpc.cloudpilot_vpc.id
+  cidr_block = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
 }
 
-Generate ONLY complete, valid Terraform code following this exact format. Make sure ALL blocks are properly closed.
+resource "aws_lb" "cloudpilot_alb" {
+  subnets = [aws_subnet.cloudpilot_public_subnet.id]
+  security_groups = [aws_security_group.cloudpilot_sg.id]
+  internal = false
+}
 
-IMPORTANT: Your response must be a complete, valid Terraform configuration. Do not truncate or leave any blocks incomplete.
+resource "aws_instance" "cloudpilot_ec2" {
+  subnet_id = aws_subnet.cloudpilot_public_subnet.id
+  vpc_security_group_ids = [aws_security_group.cloudpilot_sg.id]
+}
+
+COMMON ERRORS TO AVOID:
+1. EC2 instance not in same VPC as ELB
+2. Missing subnet associations
+3. Incorrect security group rules
+4. Missing route table associations
+5. Improper availability zone configuration
+
+Generate the complete Terraform configuration:
 """
 
         # Generate the Terraform code

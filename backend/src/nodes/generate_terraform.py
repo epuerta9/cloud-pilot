@@ -35,7 +35,7 @@ def generate_terraform(state: CloudPilotState) -> CloudPilotState:
         aws_specification = interpreter.interpret_request(state["task"])
         
         # Generate and validate Terraform code
-        tf_code, tf_validation = tf_generator.generate_terraform(aws_specification)
+        tf_code, tf_validation = tf_generator.generate_terraform(state["task"])
         
         # Update the state with the results
         new_state["terraform_code"] = tf_code
