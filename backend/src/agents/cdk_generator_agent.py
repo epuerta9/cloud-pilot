@@ -32,6 +32,27 @@ class CDKGeneratorAgent:
                 with open(file_path, 'r') as f:
                     self.existing_files[file] = f.read()
     
+    def validate_code(self, code: str) -> bool:
+        """Validate the generated code for common syntax errors."""
+        # Check for incomplete statements
+        if code.count('(') != code.count(')'):
+            return False
+        if code.count('[') != code.count(']'):
+            return False
+        if code.count('{') != code.count('}'):
+            return False
+        
+        # Check for incomplete method calls
+        if code.endswith('.ad') or code.endswith('.add'):
+            return False
+        
+        # Check for basic Python syntax
+        try:
+            compile(code, '<string>', 'exec')
+            return True
+        except SyntaxError:
+            return False
+
     def generate_cdk(self, aws_specification: str, output_dir: str = "cdk_test", retry_count: int = 0) -> Tuple[str, str]:
         """Generate CDK configuration based on AWS specification."""
         if retry_count >= 4:
@@ -61,11 +82,9 @@ REQUIREMENTS:
 EXAMPLE OF COMPLETE, VALID CODE:
 from aws_cdk import (
     Stack,
-    aws_s3 as s3,
-    aws_iam as iam,
     aws_ec2 as ec2,
     aws_elasticloadbalancingv2 as elbv2,
-    RemovalPolicy
+    aws_elasticloadbalancingv2_targets as targets
 )
 from constructs import Construct
 
@@ -73,35 +92,42 @@ class CloudPilotStack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
         
-        # VPC and Security Group
+        # VPC with 2 AZs
         vpc = ec2.Vpc(self, "cloudpilot_vpc",
             max_azs=2
         )
         
+        # Security group allowing HTTP
         security_group = ec2.SecurityGroup(self, "cloudpilot_sg",
             vpc=vpc,
-            allow_all_outbound=True
+            allow_all_outbound=True,
+            description="Allow HTTP traffic"
+        )
+        security_group.add_ingress_rule(
+            ec2.Peer.any_ipv4(),
+            ec2.Port.tcp(80),
+            "Allow HTTP traffic"
         )
         
-        # Instance with correct architecture
+        # EC2 instance
         instance = ec2.Instance(self, "cloudpilot_instance",
-            vpc=vpc,
             instance_type=ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
             machine_image=ec2.MachineImage.generic_linux({
-                "us-east-1": "ami-0c7217cdde317cfec"  # x86_64 AMI
+                "us-east-1": "ami-0c7217cdde317cfec"
             }),
+            vpc=vpc,
             security_group=security_group
         )
         
-        # Load Balancer
+        # Application load balancer
         alb = elbv2.ApplicationLoadBalancer(self, "cloudpilot_alb",
             vpc=vpc,
             internet_facing=True,
             security_group=security_group
         )
         
-        # Target Group
-        target_group = elbv2.ApplicationTargetGroup(self, "cloudpilot_target_group",
+        # Target group
+        target_group = elbv2.ApplicationTargetGroup(self, "cloudpilot_tg",
             vpc=vpc,
             port=80,
             targets=[targets.InstanceTarget(instance)]
@@ -122,6 +148,15 @@ Generate ONLY complete, valid Python code following this exact format. Make sure
         print(f"\n=== Attempt {retry_count + 1} ===")
         print(response.text)
         cdk_code = response.text.strip()
+        
+        # Validate the generated code
+        if not self.validate_code(cdk_code):
+            print(f"\nCode validation failed on attempt {retry_count + 1}, retrying...")
+            return self.generate_cdk(
+                aws_specification=aws_specification,
+                output_dir=output_dir,
+                retry_count=retry_count + 1
+            )
         
         # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)

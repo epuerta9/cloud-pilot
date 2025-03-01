@@ -670,7 +670,7 @@
                 "attributes": {
                   "aws:cdk:cloudformation:type": "AWS::EC2::SecurityGroup",
                   "aws:cdk:cloudformation:props": {
-                    "groupDescription": "Allow HTTP inbound traffic",
+                    "groupDescription": "Allow HTTP traffic",
                     "securityGroupEgress": [
                       {
                         "cidrIp": "0.0.0.0/0",
@@ -846,94 +846,40 @@
               "metadata": []
             }
           },
-          "cloudpilot_alb": {
-            "id": "cloudpilot_alb",
-            "path": "CloudPilotTestStack/cloudpilot_alb",
+          "cloudpilot_bucket": {
+            "id": "cloudpilot_bucket",
+            "path": "CloudPilotTestStack/cloudpilot_bucket",
             "children": {
               "Resource": {
                 "id": "Resource",
-                "path": "CloudPilotTestStack/cloudpilot_alb/Resource",
+                "path": "CloudPilotTestStack/cloudpilot_bucket/Resource",
                 "attributes": {
-                  "aws:cdk:cloudformation:type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+                  "aws:cdk:cloudformation:type": "AWS::S3::Bucket",
                   "aws:cdk:cloudformation:props": {
-                    "loadBalancerAttributes": [
-                      {
-                        "key": "deletion_protection.enabled",
-                        "value": "false"
-                      }
-                    ],
-                    "scheme": "internet-facing",
-                    "securityGroups": [
-                      {
-                        "Fn::GetAtt": [
-                          "cloudpilotsgD8BA7BE5",
-                          "GroupId"
-                        ]
-                      }
-                    ],
-                    "subnets": [
-                      {
-                        "Ref": "cloudpilotvpcPublicSubnet1Subnet4D931D4A"
-                      },
-                      {
-                        "Ref": "cloudpilotvpcPublicSubnet2SubnetD1F6C1D3"
-                      }
-                    ],
-                    "type": "application"
-                  }
-                },
-                "constructInfo": {
-                  "fqn": "aws-cdk-lib.aws_elasticloadbalancingv2.CfnLoadBalancer",
-                  "version": "2.181.1"
-                }
-              }
-            },
-            "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationLoadBalancer",
-              "version": "2.181.1",
-              "metadata": []
-            }
-          },
-          "cloudpilot_tg": {
-            "id": "cloudpilot_tg",
-            "path": "CloudPilotTestStack/cloudpilot_tg",
-            "children": {
-              "Resource": {
-                "id": "Resource",
-                "path": "CloudPilotTestStack/cloudpilot_tg/Resource",
-                "attributes": {
-                  "aws:cdk:cloudformation:type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-                  "aws:cdk:cloudformation:props": {
-                    "port": 80,
-                    "protocol": "HTTP",
-                    "targetGroupAttributes": [
-                      {
-                        "key": "stickiness.enabled",
-                        "value": "false"
-                      }
-                    ],
-                    "targets": [
-                      {
-                        "id": {
-                          "Ref": "cloudpilotinstance709973B1"
+                    "bucketEncryption": {
+                      "serverSideEncryptionConfiguration": [
+                        {
+                          "serverSideEncryptionByDefault": {
+                            "sseAlgorithm": "AES256"
+                          }
                         }
-                      }
-                    ],
-                    "targetType": "instance",
-                    "vpcId": {
-                      "Ref": "cloudpilotvpc0A29A0D0"
+                      ]
+                    },
+                    "versioningConfiguration": {
+                      "status": "Enabled"
                     }
                   }
                 },
                 "constructInfo": {
-                  "fqn": "aws-cdk-lib.aws_elasticloadbalancingv2.CfnTargetGroup",
+                  "fqn": "aws-cdk-lib.aws_s3.CfnBucket",
                   "version": "2.181.1"
                 }
               }
             },
             "constructInfo": {
-              "fqn": "aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationTargetGroup",
-              "version": "2.181.1"
+              "fqn": "aws-cdk-lib.aws_s3.Bucket",
+              "version": "2.181.1",
+              "metadata": []
             }
           },
           "CDKMetadata": {

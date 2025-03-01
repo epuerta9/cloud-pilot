@@ -113,8 +113,6 @@ def test_generate_terraform_flow(clean_terraform_dirs, mock_state):
         assert "encryption" in file_content.lower()
 
 
-
-
 def test_generate_terraform_with_complex_requirements(clean_terraform_dirs):
     """Test generation with complex infrastructure requirements."""
     complex_state = CloudPilotState({
@@ -147,4 +145,45 @@ def test_generate_terraform_with_complex_requirements(clean_terraform_dirs):
         assert "versioning" in file_content
         assert "encryption" in file_content
         assert "logging" in file_content
-        assert "cloudtrail" in file_content 
+        assert "cloudtrail" in file_content
+
+
+def test_terraform_generator_output(capfd):
+    """Test to show the raw output of the Terraform generator."""
+    
+    # Initialize generator
+    generator = TerraformGeneratorAgent()
+    
+    # Simple web server request
+    specification = """
+    Create a web server with:
+    - EC2 instance (t3.micro)
+    - S3 bucket for static files
+    """
+    
+    print("\n=== Testing Terraform Generator Output ===")
+    print(f"Input Specification:\n{specification}")
+    
+    # Generate Terraform code
+    code, result = generator.generate_terraform(specification)
+    
+    # Capture all stdout/stderr
+    out, err = capfd.readouterr()
+    
+    # Print the captured output
+    print("\n=== Generator Output ===")
+    print(out)
+    
+    if err:
+        print("\n=== Generator Errors ===")
+        print(err)
+    
+    print("\n=== Generated Code ===")
+    print(code)
+    
+    print("\n=== Deployment Result ===")
+    print(result)
+
+
+if __name__ == "__main__":
+    pytest.main(["-v", "-s", __file__]) 

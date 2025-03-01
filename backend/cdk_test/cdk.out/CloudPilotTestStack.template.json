@@ -463,7 +463,7 @@
   "cloudpilotsgD8BA7BE5": {
    "Type": "AWS::EC2::SecurityGroup",
    "Properties": {
-    "GroupDescription": "Allow HTTP inbound traffic",
+    "GroupDescription": "Allow HTTP traffic",
     "SecurityGroupEgress": [
      {
       "CidrIp": "0.0.0.0/0",
@@ -579,75 +579,32 @@
     "aws:cdk:path": "CloudPilotTestStack/cloudpilot_instance/Resource"
    }
   },
-  "cloudpilotalb16A33453": {
-   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+  "cloudpilotbucketFB0A3167": {
+   "Type": "AWS::S3::Bucket",
    "Properties": {
-    "LoadBalancerAttributes": [
-     {
-      "Key": "deletion_protection.enabled",
-      "Value": "false"
-     }
-    ],
-    "Scheme": "internet-facing",
-    "SecurityGroups": [
-     {
-      "Fn::GetAtt": [
-       "cloudpilotsgD8BA7BE5",
-       "GroupId"
-      ]
-     }
-    ],
-    "Subnets": [
-     {
-      "Ref": "cloudpilotvpcPublicSubnet1Subnet4D931D4A"
-     },
-     {
-      "Ref": "cloudpilotvpcPublicSubnet2SubnetD1F6C1D3"
-     }
-    ],
-    "Type": "application"
-   },
-   "DependsOn": [
-    "cloudpilotvpcPublicSubnet1DefaultRoute8EDB73C7",
-    "cloudpilotvpcPublicSubnet1RouteTableAssociationBC3B4C2B",
-    "cloudpilotvpcPublicSubnet2DefaultRoute9E4572E0",
-    "cloudpilotvpcPublicSubnet2RouteTableAssociationFD5B2DB4"
-   ],
-   "Metadata": {
-    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_alb/Resource"
-   }
-  },
-  "cloudpilottg380EBB35": {
-   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-   "Properties": {
-    "Port": 80,
-    "Protocol": "HTTP",
-    "TargetGroupAttributes": [
-     {
-      "Key": "stickiness.enabled",
-      "Value": "false"
-     }
-    ],
-    "TargetType": "instance",
-    "Targets": [
-     {
-      "Id": {
-       "Ref": "cloudpilotinstance709973B1"
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
       }
-     }
-    ],
-    "VpcId": {
-     "Ref": "cloudpilotvpc0A29A0D0"
+     ]
+    },
+    "VersioningConfiguration": {
+     "Status": "Enabled"
     }
    },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
    "Metadata": {
-    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_tg/Resource"
+    "aws:cdk:path": "CloudPilotTestStack/cloudpilot_bucket/Resource"
    }
   },
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1VPTWvCQBD9Ld7XLbEXr1aKBGwJiXgtk3WMUzezYXdWkZD/XmJqoqf3MY/Hm4VOlolOZnANc3M4zy2Vui0EzFnBNfy0aBa63TdGrY+8z9Yqi6UlU8SSUXpvYrmLgjsoLU7+5K1CcIZAyPEY7slnmvXwDbIBwSvcVObpAoJTccqCnnEMDEv+1UoEzKlGFlWgiZ7ktvEuNvcNL0bKQYANDpUD7xRBrdvcDaMf+Dhn3h3JYqfQQhAy1sGhBAtsiKvLQrerprFk7l9tHRw+7jf0fceLfsrtwFco48Yn2XUqx+CiHzZ+QdMQV53KbnJy/Pauk0QvZ7+BaO4jC9Wo8wH/ALWeKlDFAQAA"
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WOwWrDMBBEvyV3WcXJJdc0lOBDi7BLrmWtbpqN7ZWRVjXG+N+Lqyamp5l9Owyz1fk+1/kGhpDZzyZrqdZTJWAbBUP4mNBu9XTurTpe+GyOysS6JVvFmlEWtrrSRcF3qFtc+coOIThLIOT4EV7MS2EWeQM5geAAozKevkFwLS5Y0DM+AmnJ33UQAXvtkEVVaKMnGU/exf53wz9QcBBgi6ky+VkRdHoqXRp91/vbeHehFmcVdnp6jrZJg5KbZ1VicNGnylfoe+KvWZlRro6fdjrP9X5zC0SZjyzUoS6T/gCjzkDFdAEAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "CloudPilotTestStack/CDKMetadata/Default"

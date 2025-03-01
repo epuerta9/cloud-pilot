@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c012911ebd77f955a1995a27f07e72f209a270662858645e592f3935ec49f435.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/775c4ed02f5a7d18687f3864783378962bc7b45538ff2e89ba0d655836ff8a00.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -202,16 +202,10 @@
             "data": "cloudpilotinstance709973B1"
           }
         ],
-        "/CloudPilotTestStack/cloudpilot_alb/Resource": [
+        "/CloudPilotTestStack/cloudpilot_bucket/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "cloudpilotalb16A33453"
-          }
-        ],
-        "/CloudPilotTestStack/cloudpilot_tg/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "cloudpilottg380EBB35"
+            "data": "cloudpilotbucketFB0A3167"
           }
         ],
         "/CloudPilotTestStack/CDKMetadata/Default": [

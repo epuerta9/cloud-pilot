@@ -124,13 +124,19 @@ def test_cdk_generator_output(capfd):
     # Initialize generator
     generator = CDKGeneratorAgent()
     
+    # # Simple web server request
+    # specification = """
+    # Create a web server with:
+    # - EC2 instance (t3.micro)
+    # - Security group allowing HTTP
+    # - Application load balancer
+    # - VPC with 2 AZs
+    # """
     # Simple web server request
     specification = """
     Create a web server with:
     - EC2 instance (t3.micro)
-    - Security group allowing HTTP
-    - Application load balancer
-    - VPC with 2 AZs
+    - S3 bucket for static files
     """
     
     print("\n=== Testing CDK Generator Output ===")

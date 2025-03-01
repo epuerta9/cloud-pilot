@@ -2,7 +2,7 @@
 
 import os
 import subprocess
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from llama_index.llms.openai import OpenAI
 from llama_index.llms.anthropic import Anthropic
 
@@ -33,87 +33,102 @@ class TerraformGeneratorAgent:
                 with open(file_path, 'r') as f:
                     self.existing_files[file] = f.read()
     
-    def generate_tf(self, aws_specification: str, output_dir: str = "terraform_prod") -> tuple[str, str]:
-        """
-        Generate Terraform configuration based on AWS specification.
+    def validate_code(self, code: str) -> bool:
+        """Validate the generated Terraform code for common syntax errors."""
+        # Check for incomplete statements
+        if code.count('{') != code.count('}'):
+            return False
+        if code.count('[') != code.count(']'):
+            return False
+        if code.count('(') != code.count(')'):
+            return False
         
-        Args:
-            aws_specification: The AWS service specification
-            output_dir: Directory to write the Terraform configuration
-            
-        Returns:
-            Tuple of (generated terraform code, validation result)
-        """
-        prompt = f"""You are a Terraform code generator. Your ONLY job is to output valid Terraform HCL code.
+        # Check for incomplete blocks
+        if code.endswith('resource') or code.endswith('variable') or code.endswith('provider'):
+            return False
+        
+        # Check for incomplete resource blocks
+        if 'resource "' in code and not code.strip().endswith('}'):
+            return False
+        
+        return True
+
+    def generate_terraform(self, aws_specification: str, output_dir: str = "terraform_prod", retry_count: int = 0) -> Tuple[str, str]:
+        """Generate Terraform configuration based on AWS specification."""
+        if retry_count >= 4:
+            return "", "Max retries reached - unable to generate valid Terraform configuration"
+        
+        prompt = """You are a Terraform code generator. Generate ONLY the complete, valid Terraform code.
 
 SPECIFICATION:
-{aws_specification}
+""" + aws_specification + """
 
-RULES:
-1. Output ONLY valid Terraform code
-2. Start with provider block
-3. Include all necessary resources
-4. Follow AWS best practices
-5. Include appropriate tagging
-6. Configure security best practices
-7. Use clear resource naming
-8. If a user requests a server, make sure to use the ami ami-0abe47a8515be836d
-9. Prepend every resource name with cloudpilot_
-10. KEEP IT SIMPLE don't do extra log buckets or anything. SIMPLE is better.
+REQUIREMENTS:
+1. Generate ONLY the complete Terraform file contents - no explanations or markdown
+2. Use proper Terraform syntax and indentation (2 spaces)
+3. Include proper closing brackets/braces
+4. Follow AWS provider best practices
+5. Use cloudpilot_ prefix for all resource names
+6. Keep the implementation simple and focused
+7. ALWAYS complete all blocks
+8. ALWAYS close all braces and brackets
+9. NEVER leave any blocks incomplete
+10. ALWAYS use the following AMI ami-05b10e08d247fb927
 
-CRITICAL:
-- NO explanations
-- NO markdown
-- NO backticks
-- NO comments outside code
-- ONLY valid HCL syntax
-- Start IMMEDIATELY with 'provider "aws"'
-- NO acm certificates
-- NO DNS ZONES
+EXAMPLE OF COMPLETE, VALID CODE:
+provider "aws" {
+  region = "us-east-1"
+}
 
-EXAMPLE OUTPUT FORMAT:
-provider "aws" {{
-  region = "us-west-2"
-}}
+resource "aws_vpc" "cloudpilot_vpc" {
+  cidr_block = "10.0.0.0/16"
+  
+  tags = {
+    Name = "cloudpilot_vpc"
+  }
+}
 
-resource "aws_s3_bucket" "example" {{
-  bucket = "example-bucket"
-}}
+resource "aws_security_group" "cloudpilot_sg" {
+  name        = "cloudpilot_sg"
+  description = "Allow HTTP traffic"
+  vpc_id      = aws_vpc.cloudpilot_vpc.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "cloudpilot_sg"
+  }
+}
+
+Generate ONLY complete, valid Terraform code following this exact format. Make sure ALL blocks are properly closed.
 """
         
         # Generate the Terraform code
         response = self.llm.complete(prompt)
-        terraform_code = response.text.strip()
+        print(f"\n=== Attempt {retry_count + 1} ===")
+        print(response.text)
+        tf_code = response.text.strip()
         
-        # Clean up any potential explanatory text or markdown
-        lines = terraform_code.split("\n")
-        clean_lines = []
-        in_code = False
-        
-        for line in lines:
-            line = line.strip()
-            # Skip empty lines at the start
-            if not in_code and not line:
-                continue
-            
-            # Start capturing at provider block
-            if line.startswith("provider"):
-                in_code = True
-            
-            # Skip any line that looks like explanation
-            if in_code and not any(word in line.lower() for word in ["here's", "this", "note", "explanation", "creates", "sets up"]):
-                clean_lines.append(line)
-        
-        # Ensure we have valid HCL
-        terraform_code = "\n".join(clean_lines)
-        
-        # Additional cleanup
-        terraform_code = terraform_code.replace("```hcl", "").replace("```terraform", "").replace("```", "")
-        terraform_code = terraform_code.replace("Here's", "").replace("This creates", "")
-        
-        # Ensure it starts with provider block
-        if not terraform_code.strip().startswith("provider"):
-            terraform_code = "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\n" + terraform_code
+        # Validate the generated code
+        if not self.validate_code(tf_code):
+            print(f"\nCode validation failed on attempt {retry_count + 1}, retrying...")
+            return self.generate_terraform(
+                aws_specification=aws_specification,
+                output_dir=output_dir,
+                retry_count=retry_count + 1
+            )
         
         # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
@@ -121,12 +136,68 @@ resource "aws_s3_bucket" "example" {{
         # Write the generated code to main.tf
         output_file = os.path.join(output_dir, "main.tf")
         with open(output_file, "w") as f:
-            f.write(terraform_code)
+            f.write(tf_code)
         
-        # Validate the generated Terraform code
-        validation_result = self.validate_terraform(output_dir)
+        # Store current directory
+        original_dir = os.getcwd()
+        deployment_output = ""
         
-        return terraform_code, validation_result
+        try:
+            # Change to the Terraform directory
+            os.chdir(output_dir)
+            
+            # Run terraform init and plan
+            print("\n=== Running Terraform Init & Plan ===")
+            init_result = subprocess.run(
+                ["terraform", "init"],
+                capture_output=True,
+                text=True
+            )
+            print(init_result.stdout)
+            if init_result.stderr:
+                print("Init Errors:", init_result.stderr)
+            
+            plan_result = subprocess.run(
+                ["terraform", "plan"],
+                capture_output=True,
+                text=True
+            )
+            print(plan_result.stdout)
+            if plan_result.stderr:
+                print("Plan Errors:", plan_result.stderr)
+            
+            # If plan failed, retry with a new generation
+            if plan_result.returncode != 0:
+                print(f"\nPlan failed on attempt {retry_count + 1}, retrying...")
+                os.chdir(original_dir)
+                return self.generate_terraform(
+                    aws_specification=aws_specification,
+                    output_dir=output_dir,
+                    retry_count=retry_count + 1
+                )
+            
+            deployment_output = f"""
+Init Output:
+{init_result.stdout}
+{init_result.stderr if init_result.stderr else ''}
+
+Plan Output:
+{plan_result.stdout}
+{plan_result.stderr if plan_result.stderr else ''}
+"""
+        except Exception as e:
+            print(f"\nError during attempt {retry_count + 1}: {str(e)}")
+            os.chdir(original_dir)
+            return self.generate_terraform(
+                aws_specification=aws_specification,
+                output_dir=output_dir,
+                retry_count=retry_count + 1
+            )
+        finally:
+            # Return to original directory
+            os.chdir(original_dir)
+        
+        return tf_code, deployment_output
     
     def validate_terraform(self, terraform_dir: str) -> str:
         """
