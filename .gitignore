@@ -4,4 +4,6 @@ backend/.env
 
 .venv/
 __pycache__/
+venv/
+backend/src/cloud_pilot.egg-info/
 backend/build
