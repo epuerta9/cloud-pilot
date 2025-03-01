@@ -1,7 +1,7 @@
 """FastAPI implementation for Cloud Pilot."""
 
-from typing import Dict, Optional, Any
-from fastapi import FastAPI, HTTPException
+from typing import Dict, Optional, Any, Set
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 import asyncio
 from uuid import uuid4
@@ -11,6 +11,7 @@ from src.state import CloudPilotState
 from src.constants import ACTION_GENERATE
 
 app = FastAPI()
+active_connections: Set[WebSocket] = set()
 
 # Store for pending interactions
 pending_interactions: Dict[str, asyncio.Future] = {}
@@ -41,6 +42,133 @@ def handle_interrupt(interrupt_data: Dict[str, Any], state: CloudPilotState, flo
     # Return a placeholder - the actual response will come later
     return False
 
+@app.websocket("/ws/ai-assist")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    active_connections.add(websocket)
+
+    try:
+        while True:
+            # Wait for messages from the client
+            message = await websocket.receive_json()
+            print(message)
+
+            if message.get("type") == "new_task":
+                # Start a new flow
+                flow_id = str(uuid4())
+                task = message.get("task")
+                print(f"starting new flow: flow_id={flow_id}, task={task}")
+
+                # Initialize the graph and state
+                graph = build_example_graph()
+                initial_state = {
+                    "task": task,
+                    "terraform_code": "",
+                    "terraform_file_path": "",
+                    "result": "",
+                    "error": "",
+                    "next_action": ACTION_GENERATE,
+                }
+
+                try:
+                    async for event in graph.astream(
+                        initial_state,
+                        {"configurable": {
+                            "flow_id": flow_id,
+                            "interrupt": lambda data, state: handle_interrupt(data, state, flow_id)
+                        }}
+                    ):
+                        print(event)
+
+                        if flow_id in pending_interactions:
+                            # We hit an interrupt, send the question to the client
+                            interrupt_data = event.get("interrupt_data", {})
+                            await websocket.send_json({
+                                "type": "interrupt",
+                                "flow_id": flow_id,
+                                "status": "waiting_for_input",
+                                "question": interrupt_data.get("question"),
+                                "plan_output": interrupt_data.get("plan_output"),
+                                "terraform_code": interrupt_data.get("terraform_code")
+                            })
+                            break
+                        else:
+                            # Send progress event to the client
+                            await websocket.send_json({
+                                "type": "progress",
+                                "flow_id": flow_id,
+                                "data": event
+                            })
+
+                except Exception as e:
+                    await websocket.send_json({
+                        "type": "error",
+                        "flow_id": flow_id,
+                        "error": str(e)
+                    })
+
+            elif message.get("type") == "user_response":
+                # Handle user response to an interrupt
+                flow_id = message.get("flow_id")
+                approved = message.get("approved")
+
+                if flow_id not in pending_interactions:
+                    await websocket.send_json({
+                        "type": "error",
+                        "error": "No pending interaction found for this flow ID"
+                    })
+                    continue
+
+                try:
+                    # Get the stored state and future
+                    state = flow_states[flow_id]
+                    future = pending_interactions[flow_id]
+
+                    # Complete the future with the user's response
+                    future.set_result(approved)
+
+                    # Clean up
+                    del pending_interactions[flow_id]
+                    del flow_states[flow_id]
+
+                    # Continue the flow
+                    graph = build_example_graph()
+                    async for event in graph.astream(
+                        state,
+                        {"configurable": {
+                            "flow_id": flow_id,
+                            "interrupt": lambda data, state: handle_interrupt(data, state, flow_id)
+                        }}
+                    ):
+                        if flow_id in pending_interactions:
+                            # We hit another interrupt
+                            interrupt_data = event.get("interrupt_data", {})
+                            await websocket.send_json({
+                                "type": "interrupt",
+                                "flow_id": flow_id,
+                                "status": "waiting_for_input",
+                                "question": interrupt_data.get("question"),
+                                "plan_output": interrupt_data.get("plan_output"),
+                                "terraform_code": interrupt_data.get("terraform_code")
+                            })
+                            break
+                        else:
+                            # Send progress event to the client
+                            await websocket.send_json({
+                                "type": "progress",
+                                "flow_id": flow_id,
+                                "data": event
+                            })
+
+                except Exception as e:
+                    await websocket.send_json({
+                        "type": "error",
+                        "flow_id": flow_id,
+                        "error": str(e)
+                    })
+
+    except WebSocketDisconnect:
+        active_connections.remove(websocket)
 
 @app.post("/ai-assist/invoke")
 async def start_flow(request: TaskRequest) -> FlowResponse:
