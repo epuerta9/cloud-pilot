@@ -316,7 +316,8 @@ const Chat: React.FC = () => {
           prompt: "I'm developing a mobile app with user profiles, real-time chat, and data synchronization. What cloud architecture would you recommend?"
         }
       ];
-    } else if (currentMode === 'deploy') {
+    } else if (currentMode === 'deploy' || currentMode === 'normal') {
+      // Use the same suggestions for both deploy and normal modes
       return [
         {
           icon: <Cpu size={24} className="suggestion-icon" />,
@@ -344,7 +345,7 @@ const Chat: React.FC = () => {
         }
       ];
     } else {
-      // Default suggestions for normal mode
+      // This case should never be reached, but keeping it as a fallback
       return [
         {
           icon: <Cpu size={24} className="suggestion-icon" />,
@@ -550,7 +551,13 @@ const Chat: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`Message Cloud Pilot (${currentMode !== 'normal' ? currentMode + ' mode' : 'normal mode'})...`}
+                placeholder={
+                  currentMode === 'deploy' || currentMode === 'normal' 
+                    ? "Ask about deploying web servers, serverless APIs, containers, or static websites..."
+                    : currentMode === 'architect'
+                    ? "Ask about architecture designs, cost estimates, or infrastructure recommendations..."
+                    : `Message Cloud Pilot (${currentMode} mode)...`
+                }
                 disabled={isThinking || isStreaming}
                 rows={1}
                 style={{ height: 'auto' }}
