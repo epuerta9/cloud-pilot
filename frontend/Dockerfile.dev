@@ -1,0 +1,21 @@
+FROM node:14-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# Copy the rest of the application
+COPY . .
+
+# Set environment to development
+ENV NODE_ENV=development
+
+# Expose the port
+EXPOSE 3000
+
+# Start the development server with hot reloading
+CMD ["npm", "start"] 

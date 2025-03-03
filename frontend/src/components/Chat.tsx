@@ -11,8 +11,11 @@ import AwsDashboard from './AwsDashboard';
 import { Message, StructuredContent, ContentSection } from '../types';
 import { ApiService } from '../services/api';
 import SettingsModal from './SettingsModal';
-import { FileText, Cloud, ChartLineUp, CurrencyDollar, Cpu, Shield, Database, Rocket } from 'phosphor-react';
+import { FileText, Cloud, ChartLineUp, CurrencyDollar, Cpu, Shield, Database, Rocket, ArrowsClockwise, Eraser } from 'phosphor-react';
 import { useWebSocket } from '../contexts/WebSocketContext';
+import ArchitectureMode from './ArchitectureMode';
+import websocketService from '../services/websocket';
+import '../styles/Header.css';
 
 const Chat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -25,9 +28,12 @@ const Chat: React.FC = () => {
   const [streamingContent, setStreamingContent] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
+  const [showArchitectureMode, setShowArchitectureMode] = useState(false);
+  const [currentMode, setCurrentMode] = useState('normal');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
+  const [connectionStatus, setConnectionStatus] = useState<string>('UNKNOWN');
 
   const { isConnected, sendTask, lastResult, confirmationData, sendConfirmation, terraformApplyData } = useWebSocket();
 
@@ -198,10 +204,11 @@ const Chat: React.FC = () => {
       }
     }
 
-    // Send message through WebSocket
+    // Send message through WebSocket with the current mode
     sendTask({
       message: userMessage.content,
       timestamp: userMessage.timestamp,
+      mode: currentMode
     });
   };
 
@@ -268,56 +275,102 @@ const Chat: React.FC = () => {
     setShowSettingsModal(!showSettingsModal);
   };
 
+  // Toggle architecture mode selector
+  const toggleArchitectureMode = () => {
+    setShowArchitectureMode(!showArchitectureMode);
+  };
+
+  // Handle mode selection
+  const handleModeSelect = (mode: string) => {
+    setCurrentMode(mode);
+    setShowArchitectureMode(false);
+  };
+
   // Get suggestions based on active tab
   const getSuggestions = () => {
-    if (activeTab === 'chat') {
-      return (
-        <>
-          <button className="suggestion-button" onClick={() => handleSuggestion("Create an EC2 instance for hosting a Node.js web app")}>
-            <Cpu size={24} className="suggestion-icon" />
-            Launch Web App Server
-          </button>
-
-          <button className="suggestion-button" onClick={() => handleSuggestion("Set up an RDS database with proper security groups")}>
-            <Database size={24} className="suggestion-icon" />
-            Configure Database
-          </button>
-
-          <button className="suggestion-button" onClick={() => handleSuggestion("Create a production-ready VPC with public and private subnets")}>
-            <Cloud size={24} className="suggestion-icon" />
-            Setup VPC Architecture
-          </button>
-
-          <button className="suggestion-button" onClick={() => handleSuggestion("Configure auto-scaling for my EC2 instances with CloudWatch alarms")}>
-            <ChartLineUp size={24} className="suggestion-icon" />
-            Setup Auto-scaling
-          </button>
-        </>
-      );
+    // Different suggestions based on the current mode
+    if (currentMode === 'architect') {
+      return [
+        {
+          icon: <Cpu size={24} className="suggestion-icon" />,
+          title: "Social Media Platform",
+          description: "Architecture for a social media application",
+          prompt: "I'm looking to build a social media platform similar to Instagram. What architecture would you recommend and what would be the estimated costs?"
+        },
+        {
+          icon: <ChartLineUp size={24} className="suggestion-icon" />,
+          title: "E-commerce Website",
+          description: "Architecture for an online store",
+          prompt: "I need to build an e-commerce website that can handle 50,000 monthly visitors. What architecture would you recommend?"
+        },
+        {
+          icon: <CurrencyDollar size={24} className="suggestion-icon" />,
+          title: "Content Streaming Service",
+          description: "Architecture for video/audio streaming",
+          prompt: "I want to create a video streaming service like YouTube. What would be the best architecture and estimated costs per 1000 users?"
+        },
+        {
+          icon: <Rocket size={24} className="suggestion-icon" />,
+          title: "Mobile App Backend",
+          description: "Architecture for mobile application backend",
+          prompt: "I'm developing a mobile app with user profiles, real-time chat, and data synchronization. What cloud architecture would you recommend?"
+        }
+      ];
+    } else if (currentMode === 'deploy') {
+      return [
+        {
+          icon: <Cpu size={24} className="suggestion-icon" />,
+          title: "EC2 Web Server",
+          description: "Deploy a web server on EC2",
+          prompt: "I need to deploy a Node.js web application on an EC2 instance. Can you help me set it up?"
+        },
+        {
+          icon: <ChartLineUp size={24} className="suggestion-icon" />,
+          title: "Serverless API",
+          description: "Deploy a serverless API with Lambda",
+          prompt: "I want to create a serverless REST API using AWS Lambda and API Gateway. How should I set it up?"
+        },
+        {
+          icon: <CurrencyDollar size={24} className="suggestion-icon" />,
+          title: "Container Deployment",
+          description: "Deploy containers with ECS or EKS",
+          prompt: "I have a containerized application. Should I use ECS or EKS to deploy it, and how do I set it up?"
+        },
+        {
+          icon: <Rocket size={24} className="suggestion-icon" />,
+          title: "Static Website",
+          description: "Deploy a static website with S3 and CloudFront",
+          prompt: "I need to deploy a React static website with S3 and CloudFront. Can you help me set it up?"
+        }
+      ];
     } else {
-      return (
-        <>
-          <button className="suggestion-button" onClick={() => handleSuggestion("How can I reduce my EC2 and RDS costs?")}>
-            <CurrencyDollar size={24} className="suggestion-icon" />
-            Optimize AWS Costs
-          </button>
-
-          <button className="suggestion-button" onClick={() => handleSuggestion("Help me secure my AWS resources with best practices")}>
-            <Shield size={24} className="suggestion-icon" />
-            Security Best Practices
-          </button>
-
-          <button className="suggestion-button" onClick={() => handleSuggestion("Set up CloudWatch monitoring and alerts for my services")}>
-            <ChartLineUp size={24} className="suggestion-icon" />
-            Configure Monitoring
-          </button>
-
-          <button className="suggestion-button" onClick={() => handleSuggestion("Create a CI/CD pipeline with AWS CodePipeline")}>
-            <Rocket size={24} className="suggestion-icon" />
-            Setup CI/CD Pipeline
-          </button>
-        </>
-      );
+      // Default suggestions for normal mode
+      return [
+        {
+          icon: <Cpu size={24} className="suggestion-icon" />,
+          title: "Generate Documentation",
+          description: "Create comprehensive documentation for your project",
+          prompt: "Generate documentation for my React application with TypeScript"
+        },
+        {
+          icon: <ChartLineUp size={24} className="suggestion-icon" />,
+          title: "Optimize Performance",
+          description: "Get tips to improve your application's performance",
+          prompt: "How can I optimize the performance of my web application?"
+        },
+        {
+          icon: <CurrencyDollar size={24} className="suggestion-icon" />,
+          title: "Cost Estimation",
+          description: "Estimate cloud infrastructure costs",
+          prompt: "Estimate the cost of hosting a web application with 10,000 monthly users"
+        },
+        {
+          icon: <Rocket size={24} className="suggestion-icon" />,
+          title: "Architecture Design",
+          description: "Design scalable architecture for your application",
+          prompt: "Design a scalable architecture for a web application with user authentication"
+        }
+      ];
     }
   };
 
@@ -337,6 +390,26 @@ const Chat: React.FC = () => {
     }
   }, [terraformApplyData]);
 
+  // Update connection status periodically
+  useEffect(() => {
+    const updateConnectionStatus = () => {
+      setConnectionStatus(websocketService.getConnectionStatus());
+    };
+    
+    // Update immediately
+    updateConnectionStatus();
+    
+    // Then update every 2 seconds
+    const interval = setInterval(updateConnectionStatus, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle reconnect button click
+  const handleReconnect = () => {
+    websocketService.forceReconnect();
+  };
+
   // Render the main chat interface
   return (
     <div className="app-container">
@@ -344,21 +417,46 @@ const Chat: React.FC = () => {
         <div className="chat-header">
           <Link to="/" className="nav-logo">
             <Cloud size={24} weight="fill" className="logo-icon" />
-            <span className="logo-text">Cloud Pilot</span>
+            <span className="logo-text">CloudPilot</span>
           </Link>
           <h1 className="chat-title">
             {activeTab === 'chat' ? 'New Chat' : activeTab === 'aws' ? 'AWS Setup' : 'Document View'}
           </h1>
-          {messages.length > 0 && (
+          <div className="header-buttons">
+            <div className="connection-status">
+              <span className={`status-indicator ${connectionStatus === 'OPEN' ? 'connected' : 'disconnected'}`}></span>
+              <span className="status-text">{connectionStatus}</span>
+              {connectionStatus !== 'OPEN' && (
+                <button className="reconnect-button" onClick={handleReconnect}>
+                  <ArrowsClockwise size={16} />
+                </button>
+              )}
+            </div>
+            {messages.length > 0 && (
+              <button
+                className="clear-chat-button"
+                onClick={clearChat}
+                aria-label="Clear chat"
+              >
+                <ArrowPathIcon className="w-5 h-5" />
+              </button>
+            )}
             <button
-              className="clear-chat-button"
-              onClick={clearChat}
-              aria-label="Clear chat"
+              className="mode-toggle-button"
+              onClick={toggleArchitectureMode}
+              aria-label="Toggle architecture mode"
             >
-              <ArrowPathIcon className="w-5 h-5" />
+              <Rocket size={20} />
             </button>
-          )}
+          </div>
         </div>
+
+        {/* Architecture Mode Selector */}
+        <ArchitectureMode 
+          isActive={showArchitectureMode} 
+          onSelect={handleModeSelect} 
+          currentMode={currentMode} 
+        />
 
         <div className="main-content">
           <div className="chat-messages">
@@ -382,7 +480,19 @@ const Chat: React.FC = () => {
                   </p>
 
                   <div className="suggestion-grid">
-                    {getSuggestions()}
+                    {getSuggestions().map((suggestion, index) => (
+                      <button 
+                        key={index} 
+                        className="suggestion-button" 
+                        onClick={() => handleSuggestion(suggestion.prompt)}
+                      >
+                        {suggestion.icon}
+                        <div className="suggestion-content">
+                          <h3 className="suggestion-title">{suggestion.title}</h3>
+                          <p className="suggestion-description">{suggestion.description}</p>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </motion.div>
               ) : (
@@ -408,7 +518,8 @@ const Chat: React.FC = () => {
                         () => handleConfirmation(message, false) : undefined}
                     />
                   ))}
-                  {isThinking && <ThinkingIndicator />}
+                  {/* Only show thinking indicator if there's no pending confirmation */}
+                  {isThinking && !messages.some(m => m.confirmationData) && <ThinkingIndicator />}
                   {isStreaming && streamingContent && (
                     <ChatMessage
                       message={{
@@ -439,7 +550,7 @@ const Chat: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Message Cloud Pilot..."
+                placeholder={`Message Cloud Pilot (${currentMode !== 'normal' ? currentMode + ' mode' : 'normal mode'})...`}
                 disabled={isThinking || isStreaming}
                 rows={1}
                 style={{ height: 'auto' }}
@@ -493,7 +604,7 @@ const Chat: React.FC = () => {
               onClick={() => setActiveTab('chat')}
             >
               <ChatBubbleLeftRightIcon className="w-5 h-5" />
-              Chat
+              <span>Chat</span>
             </button>
             <button
               className={`tab-button ${activeTab === 'document' ? 'active' : ''}`}
@@ -501,14 +612,14 @@ const Chat: React.FC = () => {
               disabled={!currentDocument}
             >
               <FileText size={20} />
-              Document
+              <span>Document</span>
             </button>
             <button
               className={`tab-button ${activeTab === 'aws' ? 'active' : ''}`}
               onClick={() => setActiveTab('aws')}
             >
               <ChartLineUp size={20} />
-              AWS Dashboard
+              <span>AWS Dashboard</span>
             </button>
             <button
               className="settings-button"

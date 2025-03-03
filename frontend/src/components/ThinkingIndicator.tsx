@@ -5,9 +5,6 @@ const ThinkingIndicator: React.FC = () => {
   return (
     <div className="chat-bubble assistant-bubble">
       <div className="message-content">
-        <div className="avatar">
-          <span>CP</span>
-        </div>
         <div className="message-body">
           <div className="thinking-text">
             <span className="thinking-label">Thinking</span>

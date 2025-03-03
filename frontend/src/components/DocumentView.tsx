@@ -103,7 +103,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
     const isErrored = terraform_json?.errored || !!error;
 
     return (
-      <div className="terraform-apply-result">
+      <div className="notion-like-section terraform-apply-result">
         {/* Status Banner */}
         <div className={`terraform-status ${isComplete && !isErrored ? 'success' : isErrored ? 'error' : ''}`}>
           <div className="terraform-status-icon">
@@ -123,7 +123,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
 
         {/* Resource Changes */}
         {terraform_json?.resource_changes && terraform_json.resource_changes.length > 0 && (
-          <div className="terraform-resource-changes">
+          <div className="notion-like-section terraform-resource-changes">
             <h3 className="section-title">Resource Changes</h3>
 
             {terraform_json.resource_changes.map((change: any, index: number) => (
@@ -177,7 +177,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
 
         {/* Terminal Output */}
         {result && (
-          <div className="terraform-output">
+          <div className="notion-like-section terraform-output">
             <h3 className="section-title">Terminal Output</h3>
             <div
               className="terminal-output"
@@ -188,7 +188,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
 
         {/* Error Output */}
         {error && (
-          <div className="terraform-error">
+          <div className="notion-like-section terraform-error">
             <h3 className="section-title">Error</h3>
             <div className="terminal-output ansi-red-fg">{error}</div>
           </div>
@@ -199,9 +199,9 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
 
   if (!content && !isStreaming && !terraformApplyData) {
     return (
-      <div className="document-empty-state">
+      <div className="notion-document empty-state">
         <motion.div
-          className="document-empty-content"
+          className="empty-state-content"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -232,17 +232,17 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
         const headingContent = typeof section.content === 'string' ? section.content : '';
 
         if (level === 1) {
-          return <h1 key={index} className="document-heading heading-1">{headingContent}</h1>;
+          return <h1 key={index} className="notion-heading heading-1">{headingContent}</h1>;
         } else if (level === 2) {
-          return <h2 key={index} className="document-heading heading-2">{headingContent}</h2>;
+          return <h2 key={index} className="notion-heading heading-2">{headingContent}</h2>;
         } else if (level === 3) {
-          return <h3 key={index} className="document-heading heading-3">{headingContent}</h3>;
+          return <h3 key={index} className="notion-heading heading-3">{headingContent}</h3>;
         } else if (level === 4) {
-          return <h4 key={index} className="document-heading heading-4">{headingContent}</h4>;
+          return <h4 key={index} className="notion-heading heading-4">{headingContent}</h4>;
         } else if (level === 5) {
-          return <h5 key={index} className="document-heading heading-5">{headingContent}</h5>;
+          return <h5 key={index} className="notion-heading heading-5">{headingContent}</h5>;
         } else {
-          return <h6 key={index} className="document-heading heading-6">{headingContent}</h6>;
+          return <h6 key={index} className="notion-heading heading-6">{headingContent}</h6>;
         }
 
       case 'text':
@@ -257,34 +257,30 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
         if (textContent.startsWith('Status:')) {
           const status = textContent.replace('Status:', '').trim();
           return (
-            <div key={index} className="document-tag-container">
-              <div className={`document-tag ${status.toLowerCase() === 'complete' ? 'success' : status.toLowerCase() === 'error' ? 'error' : 'pending'}`}>
-                {status.toLowerCase() === 'complete' ? (
-                  <CheckCircle size={16} weight="fill" />
-                ) : status.toLowerCase() === 'error' ? (
-                  <Warning size={16} weight="fill" />
-                ) : (
-                  <Clock size={16} weight="fill" />
-                )}
-                <span>Status: {status}</span>
-              </div>
+            <div key={index} className="notion-tag status-tag">
+              {status.toLowerCase() === 'complete' ? (
+                <CheckCircle size={16} weight="fill" />
+              ) : status.toLowerCase() === 'error' ? (
+                <Warning size={16} weight="fill" />
+              ) : (
+                <Clock size={16} weight="fill" />
+              )}
+              <span>Status: {status}</span>
             </div>
           );
         } else if (textContent.startsWith('Terraform Version:')) {
           const version = textContent.replace('Terraform Version:', '').trim();
           return (
-            <div key={index} className="document-tag-container">
-              <div className="document-tag info">
-                <Code size={16} weight="fill" />
-                <span>Terraform Version: {version}</span>
-              </div>
+            <div key={index} className="notion-tag version-tag">
+              <Code size={16} weight="fill" />
+              <span>Terraform Version: {version}</span>
             </div>
           );
         }
 
         // Default text rendering
         return (
-          <p key={index} className="document-paragraph">
+          <p key={index} className="notion-paragraph">
             {textContent}
           </p>
         );
@@ -292,7 +288,7 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
       case 'code':
         const codeContent = typeof section.content === 'string' ? section.content : '';
         return (
-          <div key={index} className="document-code-block">
+          <div key={index} className="notion-code-block">
             <div className="code-header">
               <span className="code-language">{section.metadata?.language || 'code'}</span>
               <button
@@ -320,9 +316,9 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
           if (isStringArray) {
             const listItems = contentArray as string[];
             return (
-              <ul key={index} className="document-list">
+              <ul key={index} className="notion-list">
                 {listItems.map((item, i) => (
-                  <li key={i} className="document-list-item">{item}</li>
+                  <li key={i} className="notion-list-item">{item}</li>
                 ))}
               </ul>
             );
@@ -336,8 +332,8 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
           if (typeof firstItem === 'object' && firstItem !== null) {
             const tableRows = section.content as TableRow[];
             return (
-              <div key={index} className="document-table-container">
-                <table className="document-table">
+              <div key={index} className="notion-table">
+                <table>
                   <thead>
                     <tr>
                       {Object.keys(tableRows[0]).map((header, i) => (
@@ -366,94 +362,100 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
     }
   };
 
-  return (
-    <div className="document-view">
-      {isStreaming && !content && !terraformApplyData && (
-        <div className="document-streaming-placeholder">
-          <div className="document-streaming-indicator">
-            <span>Processing content...</span>
-            <div className="streaming-dots">
-              {[0, 1, 2].map((dot) => (
-                <motion.div
-                  key={dot}
-                  className="streaming-dot"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.7, 1, 0.7]
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    delay: dot * 0.3,
-                    ease: "easeInOut"
-                  }}
-                />
-              ))}
-            </div>
+  // Main render
+  if (isStreaming && !content && !terraformApplyData) {
+    return (
+      <div className="notion-document streaming">
+        <div className="streaming-indicator">
+          <span>Processing content...</span>
+          <div className="streaming-dots">
+            {[0, 1, 2].map((dot) => (
+              <motion.div
+                key={dot}
+                className="streaming-dot"
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.7, 1, 0.7]
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  delay: dot * 0.3,
+                  ease: "easeInOut"
+                }}
+              />
+            ))}
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
+  return (
+    <div className="notion-document">
       {(content || terraformApplyData) && (
         <motion.div
-          className="document-content"
+          className="notion-content"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
+          {/* Document Header */}
           {content?.title && (
-            <div className="document-header">
-              <h1 className="document-title">{content.title}</h1>
-
+            <header className="notion-header">
+              <h1 className="notion-title">{content.title}</h1>
+              
+              {/* Tabs for Terraform Plan */}
               {isTerraformPlan && (
-                <div className="tabs-wrapper">
-                  <div className="document-tabs">
-                    <button
-                      className={`document-tab ${activeTab === 'details' ? 'active' : ''}`}
-                      onClick={() => setActiveTab('details')}
-                    >
-                      <Table size={18} weight="regular" />
-                      <span>Plan Details</span>
-                    </button>
-                    <button
-                      className={`document-tab ${activeTab === 'output' ? 'active' : ''}`}
-                      onClick={() => setActiveTab('output')}
-                      disabled={planOutput.length === 0}
-                    >
-                      <Code size={18} weight="regular" />
-                      <span>Plan Output</span>
-                    </button>
-                  </div>
+                <div className="notion-tabs">
+                  <button
+                    className={`notion-tab ${activeTab === 'details' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('details')}
+                  >
+                    <Table size={18} weight="regular" />
+                    <span>Plan Details</span>
+                  </button>
+                  <button
+                    className={`notion-tab ${activeTab === 'output' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('output')}
+                    disabled={planOutput.length === 0}
+                  >
+                    <Code size={18} weight="regular" />
+                    <span>Plan Output</span>
+                  </button>
                 </div>
               )}
-            </div>
+            </header>
           )}
 
+          {/* Terraform Apply Title */}
           {!content?.title && terraformApplyData && (
-            <div className="document-header">
-              <h1 className="document-title">Terraform Apply Results</h1>
-            </div>
+            <header className="notion-header">
+              <h1 className="notion-title">Terraform Apply Results</h1>
+            </header>
           )}
 
-          <div className="document-sections">
+          {/* Document Content */}
+          <div className="notion-body">
             {isTerraformPlan ? (
               activeTab === 'details' ? (
-                <div className="plan-details-wrapper">
-                  <div className="document-tags-row">
-                    <div className="document-tags-container">
-                      {planDetails.map((section, index) => {
-                        if (section.type === 'text' && typeof section.content === 'string') {
-                          const textContent = section.content;
-                          if (textContent.startsWith('Status:') ||
-                              textContent.startsWith('Terraform Version:')) {
-                            return renderSection(section, index);
-                          }
+                <>
+                  {/* Status Tags */}
+                  <div className="notion-tags">
+                    {planDetails.map((section, index) => {
+                      if (section.type === 'text' && typeof section.content === 'string') {
+                        const textContent = section.content;
+                        if (textContent.startsWith('Status:') ||
+                            textContent.startsWith('Terraform Version:')) {
+                          return renderSection(section, index);
                         }
-                        return null;
-                      })}
-                    </div>
+                      }
+                      return null;
+                    })}
                   </div>
-                  <div className="plan-content-wrapper">
+                  
+                  {/* Plan Details Content */}
+                  <div className="notion-sections">
                     {planDetails.map((section, index) => {
                       if (section.type === 'text' && typeof section.content === 'string') {
                         const textContent = section.content;
@@ -470,13 +472,13 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
                       return renderSection(section, index);
                     })}
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="plan-output-wrapper">
+                <div className="notion-sections">
                   {planOutput.length > 0 ? (
                     planOutput.map(renderSection)
                   ) : (
-                    <div className="document-empty-tab">
+                    <div className="notion-empty-message">
                       <p>No plan output available</p>
                     </div>
                   )}
@@ -485,7 +487,9 @@ const DocumentView: React.FC<DocumentViewProps> = ({ content, isStreaming, terra
             ) : isTerraformApply ? (
               renderTerraformApplyResults()
             ) : (
-              content?.sections.map(renderSection)
+              <div className="notion-sections">
+                {content?.sections.map(renderSection)}
+              </div>
             )}
           </div>
         </motion.div>

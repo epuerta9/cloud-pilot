@@ -1,79 +1,99 @@
+.document-view {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+  position: relative;
+  overflow: hidden;
+}
+
 .document-content {
   height: 100%;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: 2rem 2.5rem;
   display: flex;
   flex-direction: column;
+  background: #ffffff;
+  border-radius: 0;
+  box-shadow: none;
+  position: relative;
+  z-index: 1;
 }
 
 .document-header {
   display: flex;
   flex-direction: column;
   margin-bottom: 2rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
   width: 100%;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .document-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0 0 1rem 0;
-  padding-bottom: 0.5rem;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 0 1.5rem 0 !important;
+  display: flex;
+  align-items: center;
+  letter-spacing: -0.02em;
+  position: relative;
 }
 
-.document-tabs {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
+.document-title::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 28px;
+  background: #3b82f6;
+  margin-right: 16px;
+  border-radius: 3px;
 }
 
 .tabs-wrapper {
-  position: relative;
   width: 100%;
-  padding: 0.5rem 0;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
-  overflow: visible;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
   display: flex;
-  flex-direction: column;
-  z-index: 2;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 3;
 }
 
 .document-tab {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  color: #64748b;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  padding: 0.75rem 1.25rem !important;
+  border-radius: 8px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  color: #64748b !important;
+  background-color: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
   cursor: pointer;
-  transition: all 0.2s;
-  z-index: 2;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0.5rem;
 }
 
 .document-tab.active {
-  background-color: #eff6ff;
-  color: #2563eb;
-  border-color: #bfdbfe;
-  font-weight: 500;
+  background: #eff6ff !important;
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1) !important;
 }
 
 .document-tab:hover:not(.active) {
-  background-color: #f1f5f9;
-  color: #334155;
-}
-
-.document-tab:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  background-color: #e2e8f0 !important;
+  color: #334155 !important;
+  transform: translateY(-1px);
 }
 
 .document-copy-button {
@@ -136,19 +156,29 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  background-color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
 }
 
 .section-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0 0 1rem 0;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  margin: 0 0 1.25rem 0 !important;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
 }
 
 .section-content {
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  color: #334155;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  color: #334155 !important;
 }
 
 .section-content h1,
@@ -241,10 +271,23 @@
   padding: 2rem;
   text-align: center;
   color: #64748b;
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
-.empty-icon {
-  color: #cbd5e1;
+.document-empty-content {
+  max-width: 500px;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.empty-state-icon {
+  color: #3b82f6;
   margin-bottom: 1.5rem;
 }
 
@@ -352,13 +395,6 @@
 }
 
 /* Document content styling */
-.document-view {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-}
-
 .document-sections {
   padding: 0;
   width: 100%;
@@ -397,9 +433,10 @@
 
 .document-code-block {
   margin: 1rem 0;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  background-color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   max-width: 100%;
 }
 
@@ -417,35 +454,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  background-color: #1e293b;
+  padding: 0.75rem 1rem;
+  background-color: #0f172a;
   color: #e2e8f0;
+  font-family: monospace;
   font-size: 0.75rem;
 }
 
 /* Plan wrapper styling */
-.plan-details-wrapper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  margin-top: 1rem;
-  position: relative;
-}
-
-.plan-content-wrapper {
-  margin-top: 2rem;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
+.plan-details-wrapper,
+.plan-content-wrapper,
 .plan-output-wrapper {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  padding: 0.5rem 0;
+  margin-bottom: 2rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 /* Terraform Apply Results Styling */
@@ -497,19 +521,12 @@
 
 .terraform-resource-changes {
   margin-top: 1.5rem;
-}
-
-.section-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 1.5rem 0 1rem 0;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .terraform-resource-change {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   padding: 1.25rem;
   border-radius: 0.5rem;
   background-color: #f8fafc;
@@ -565,11 +582,17 @@
   color: #334155;
   line-height: 1.5;
   margin-top: 0.75rem;
-  padding: 0.75rem;
-  background-color: #f1f5f9;
+  padding: 1rem;
+  background-color: #ffffff;
   border-radius: 0.375rem;
-  max-height: 300px;
-  overflow-y: auto;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.resource-details pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .terraform-summary {
@@ -623,15 +646,15 @@
   background-color: #1e293b;
   color: #e2e8f0;
   font-family: monospace;
-  padding: 1.25rem;
-  border-radius: 0.5rem;
+  padding: 1rem;
+  border-radius: 8px;
   white-space: pre-wrap;
   overflow-x: auto;
   font-size: 0.875rem;
   line-height: 1.5;
   margin: 1rem 0;
-  max-height: 500px;
-  overflow-y: auto;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .ansi-green-fg {
@@ -652,4 +675,687 @@
 
 .ansi-bold {
   font-weight: bold;
+}
+
+/* Code blocks */
+pre {
+  margin: 0 !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+}
+
+.code-block {
+  position: relative;
+  margin: 1rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.code-language {
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.copy-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #e2e8f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* JSON formatting */
+.json-key {
+  color: #7dd3fc;
+}
+
+.json-value {
+  color: #fcd34d;
+}
+
+.json-string {
+  color: #86efac;
+}
+
+.json-boolean {
+  color: #f87171;
+}
+
+.json-null {
+  color: #94a3b8;
+}
+
+/* Fix for JSON display in Document View */
+.json-content {
+  max-width: 100%;
+  overflow-x: auto;
+  font-family: monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background-color: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Fix for Plan Output tab content */
+#plan-output-tab {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Fix for tables in Document View */
+.document-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.document-table th,
+.document-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.document-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.document-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Fix for lists in Document View */
+.document-list {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.document-list-item {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.document-list-item::before {
+  content: "•";
+  position: absolute;
+  left: -1rem;
+  color: #3b82f6;
+}
+
+/* Ensure syntax highlighter doesn't overflow */
+.syntax-highlighter-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Notion-like Document Styling */
+.notion-document {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  color: #37352f;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  overflow-y: auto;
+  padding: 0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.notion-content {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.notion-header {
+  padding: 24px 32px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+  margin-bottom: 12px;
+}
+
+.notion-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+  padding: 0;
+  color: #37352f;
+}
+
+.notion-body {
+  padding: 0 32px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notion-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Headings */
+.notion-heading {
+  font-weight: 600;
+  margin: 24px 0 8px;
+  padding: 0;
+  color: #37352f;
+}
+
+.notion-heading.heading-1 {
+  font-size: 2rem;
+  margin-top: 32px;
+}
+
+.notion-heading.heading-2 {
+  font-size: 1.5rem;
+}
+
+.notion-heading.heading-3 {
+  font-size: 1.25rem;
+}
+
+.notion-heading.heading-4,
+.notion-heading.heading-5,
+.notion-heading.heading-6 {
+  font-size: 1rem;
+}
+
+/* Paragraphs */
+.notion-paragraph {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 4px 0;
+  padding: 0;
+  color: #37352f;
+}
+
+/* Tags */
+.notion-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+
+.notion-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: rgba(55, 53, 47, 0.08);
+  color: #37352f;
+}
+
+.notion-tag.status-tag {
+  background-color: rgba(0, 120, 223, 0.1);
+  color: #0078df;
+}
+
+.notion-tag.version-tag {
+  background-color: rgba(15, 123, 108, 0.1);
+  color: #0f7b6c;
+}
+
+/* Code Blocks */
+.notion-code-block {
+  width: 100%;
+  margin: 8px 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #f7f6f3;
+}
+
+.notion-code-block .code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #f7f6f3;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.notion-code-block .code-language {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.notion-code-block .copy-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.notion-code-block .copy-button:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}
+
+.notion-code-block pre {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Lists */
+.notion-list {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.notion-list-item {
+  margin: 4px 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* Tables */
+.notion-table {
+  width: 100%;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+
+.notion-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.notion-table th {
+  background-color: #f7f6f3;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+  color: #6b7280;
+}
+
+.notion-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+  color: #37352f;
+}
+
+.notion-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Tabs */
+.notion-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.notion-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: transparent;
+  color: #6b7280;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.notion-tab:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}
+
+.notion-tab.active {
+  background-color: rgba(55, 53, 47, 0.08);
+  color: #37352f;
+  font-weight: 600;
+}
+
+.notion-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Empty State */
+.notion-document.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.empty-state-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 500px;
+  padding: 32px;
+}
+
+.empty-state-icon {
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.empty-state-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: #37352f;
+}
+
+.empty-state-content p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.empty-state-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+}
+
+.empty-state-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+}
+
+.tip-icon {
+  color: #0078df;
+}
+
+/* Streaming State */
+.notion-document.streaming {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.streaming-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.streaming-indicator span {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.streaming-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.streaming-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #0078df;
+}
+
+/* Terraform Specific Styling */
+.notion-like-section {
+  margin: 24px 0;
+  padding: 16px;
+  border-radius: 4px;
+  background-color: #f7f6f3;
+  border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.terraform-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 24px;
+  background-color: #f3f4f6;
+}
+
+.terraform-status.success {
+  background-color: rgba(52, 211, 153, 0.1);
+}
+
+.terraform-status.error {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.terraform-status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.terraform-status.success .terraform-status-icon {
+  color: #34d399;
+}
+
+.terraform-status.error .terraform-status-icon {
+  color: #ef4444;
+}
+
+.terraform-status-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.terraform-resource-change {
+  margin: 16px 0;
+  padding: 12px;
+  border-radius: 4px;
+  background-color: white;
+  border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.resource-change-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.resource-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.resource-action {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+}
+
+.action-create {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.action-update {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.action-delete {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.resource-details {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  overflow-x: auto;
+}
+
+.resource-details pre {
+  margin: 0;
+  padding: 12px;
+  background-color: #f7f6f3;
+  border-radius: 4px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.terraform-summary {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 4px;
+  background-color: white;
+  border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.summary-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.summary-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.summary-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.count-create {
+  color: #10b981;
+}
+
+.count-update {
+  color: #3b82f6;
+}
+
+.count-delete {
+  color: #ef4444;
+}
+
+.terminal-output {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: 16px;
+  background-color: #1e1e1e;
+  color: #f8f8f8;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+/* ANSI Color Classes */
+.ansi-bold {
+  font-weight: bold;
+}
+
+.ansi-red-fg {
+  color: #ef4444;
+}
+
+.ansi-green-fg {
+  color: #10b981;
+}
+
+.ansi-yellow-fg {
+  color: #f59e0b;
+}
+
+.ansi-blue-fg {
+  color: #3b82f6;
+}
+
+.notion-empty-message {
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .notion-header {
+    padding: 16px 16px 8px;
+  }
+  
+  .notion-body {
+    padding: 0 16px 32px;
+  }
+  
+  .notion-title {
+    font-size: 1.75rem;
+  }
+  
+  .notion-heading.heading-1 {
+    font-size: 1.5rem;
+  }
+  
+  .notion-heading.heading-2 {
+    font-size: 1.25rem;
+  }
+  
+  .terraform-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .summary-counts {
+    flex-direction: column;
+    gap: 8px;
+  }
 }

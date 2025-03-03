@@ -1,0 +1,143 @@
+.app-container .sidebar .chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(to right, #1e293b, #0f172a);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 10;
+  height: auto;
+}
+
+.app-container .sidebar .nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: white !important;
+  font-weight: 600;
+  font-size: 1.125rem;
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  opacity: 1;
+}
+
+.app-container .sidebar .nav-logo:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+  opacity: 1;
+}
+
+.app-container .sidebar .logo-icon {
+  color: #60a5fa !important;
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.5));
+  transition: all 0.2s ease;
+}
+
+.app-container .sidebar .nav-logo:hover .logo-icon {
+  transform: scale(1.1);
+  color: #93c5fd !important;
+}
+
+.app-container .sidebar .logo-text {
+  background: linear-gradient(to right, #60a5fa, #93c5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: 1.125rem;
+}
+
+.app-container .sidebar .chat-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  position: static;
+  transform: none;
+}
+
+.app-container .sidebar .header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-container .sidebar .connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  padding: 0.375rem 0.75rem;
+  background-color: rgba(15, 23, 42, 0.5);
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.app-container .sidebar .status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+}
+
+.app-container .sidebar .status-indicator.connected {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.app-container .sidebar .status-text {
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.app-container .sidebar .reconnect-button {
+  background: none;
+  border: none;
+  color: #60a5fa;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.app-container .sidebar .reconnect-button:hover {
+  color: #93c5fd;
+  transform: rotate(180deg);
+}
+
+.app-container .sidebar .clear-chat-button,
+.app-container .sidebar .mode-toggle-button {
+  background-color: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+  border-radius: 9999px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  margin: 0 2px;
+}
+
+.app-container .sidebar .clear-chat-button:hover,
+.app-container .sidebar .mode-toggle-button:hover {
+  background-color: rgba(30, 41, 59, 0.7);
+  color: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.app-container .sidebar .mode-toggle-button {
+  color: #60a5fa;
+  margin-left: 4px;
+} 

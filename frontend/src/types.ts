@@ -16,6 +16,7 @@ export interface ConfirmationData {
   question?: string;
   status?: string;
   type?: string;
+  title?: string;
 }
 
 export interface TerraformPlanJson {
