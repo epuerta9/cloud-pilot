@@ -97,10 +97,11 @@ REQUIREMENTS:
 7. ALWAYS complete all blocks
 8. ALWAYS close all braces and brackets
 9. NEVER leave any blocks incomplete
-10. ALWAYS use the following AMI ami-05b10e08d247fb927
+10. IF the user wants a server, ALWAYS use the following AMI ami-05b10e08d247fb927
 11. NEVER include any natural language text or descriptions
 12. Start DIRECTLY with the terraform block
 
+If the user request requires a VPC and networking refer to the following requirements.
 CRITICAL VPC REQUIREMENTS:
 1. Create public and private subnets in different availability zones
 2. Ensure EC2 instances and ELB/ALB are in the same VPC
@@ -141,6 +142,13 @@ COMMON ERRORS TO AVOID:
 3. Incorrect security group rules
 4. Missing route table associations
 5. Improper availability zone configuration
+
+
+IF the user request does not require a VPC and networking, for example, an S3 bucket, then do not include any VPC.
+GENERAL REQUIREMENTS:
+1. If the user request does not require a VPC and networking, do not include any VPC.
+2. If the user request does not require a server, do not include any EC2 instances.
+3. Only include the required resources to fulfill the user request.
 
 Generate ONLY the Terraform configuration, starting with the terraform block:
 """
